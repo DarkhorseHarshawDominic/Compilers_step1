@@ -3,7 +3,7 @@ grammar Little;
 
 /*prog : (decl | expr)+ EOF;*/
 
-prog		: (KEYWORD | COMMENT | IDENTIFIER | INTLITERAL | STRINGLITERAL | FLOATLITERAL | OPERATOR | WS | ' ')+ EOF;
+prog		: (KEYWORD | COMMENT | IDENTIFIER | INTLITERAL | STRINGLITERAL | FLOATLITERAL | OPERATOR | WS)+ EOF;
 
 IDENTIFIER	: 'a'..'z' | 'A'..'Z' ([a-z] | [0-9])*;
 
@@ -18,4 +18,4 @@ STRINGLITERAL	: '"'('a'..'z' | 'A'..'Z' | ' ' | '!' | '@' | '#' | '$' | '%' | '^
 OPERATOR	: ':=' | '+' | '-' | '*' | '/' | '=' | '!=' | '<' | '>' | '(' | ')' | ';' | ',' | '<=' | '>=';
 
 COMMENT		: '--' ->skip;
-WS		: [\t\r\n]+ ->skip;
+WS		: [ \t\r\n]+ ->skip;
