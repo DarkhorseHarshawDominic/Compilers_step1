@@ -5,9 +5,9 @@ grammar Little;
 
 prog		: (KEYWORD | COMMENT | IDENTIFIER | INTLITERAL | STRINGLITERAL | FLOATLITERAL | OPERATOR | WS)+ EOF;
 
-IDENTIFIER	: ('a'..'z' | 'A'..'Z') ('a'..'z' | '0'..'9' | 'A'..'Z')*;
-
 KEYWORD		: 'PROGRAM' | 'BEGIN' | 'END' | 'FUNCTION' | 'READ' | 'WRITE' | 'IF' | 'ELSE' | 'ENDIF' | 'WHILE' | 'ENDWHILE' | 'CONTINUE' | 'BREAK' | 'RETURN' | 'INT' | 'VOID' | 'STRING' | 'FLOAT';
+
+IDENTIFIER	: ('a'..'z' | 'A'..'Z') ('a'..'z' | '0'..'9' | 'A'..'Z')*;
 
 INTLITERAL	: '0' | ('1'..'9')+;
 
