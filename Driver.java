@@ -12,7 +12,7 @@ public class Driver {
         Scanner scanner = new Scanner(System.in);
 
         //gathering the inputs from the user
-
+        //this is a test
 
         System.out.print("Please enter a destination path for your text file: ");
         String filePath = scanner.nextLine();//where you want to write to
