@@ -1,56 +1,90 @@
-package ANTLR_Project1;
-import java.io.BufferedReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.tree.*;
+import java.io.FileInputStream;
+import java.io.*;
 import java.util.Scanner;
 
-public class Driver {
+public class Driver{
 
-    public static void main(String[] args)  {
+	public static void main(String args[])throws Exception {
+		String inputFile = null;
+		if(args.length > 0)
+			inputFile = args[0];
+		InputStream is = System.in;
+		if(inputFile != null)
+			is = new FileInputStream(inputFile);
+		ANTLRInputStream input = new ANTLRInputStream(is);
+		LittleLexer lexer = new LittleLexer(input);
+		CommonTokenStream tokens = new CommonTokenStream(lexer);
+		LittleParser parser = new LittleParser(tokens);
+		
+		ParseTree tree = parser.prog(); // parse; start at prog
+		ParseTreeWalker walker = new ParseTreeWalker();
+		System.out.println(tree.toStringTree(parser));
 
-        Scanner scanner = new Scanner(System.in);
+	/*try{
+		FileWriter fileWriter = new FileWriter(System.getProperty("user.dir") + "/tmp.txt");
+		Process p = Runtime.getRuntime().exec("java -Xmx500M -cp //home/50/n00851750/COP4620/lib/antlr-4.9-complete.jar:$CLASSPATH org.antlr.v4.gui.TestRig' grun Little prog " + args + "-tokens ");
+		//BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+		String line;
+		//System.out.println(reader.readLine());
+		InputStream in = p.getInputStream();
+		//System.out.println(in.available());
+		for(int x=0;x<in.available();x++)/*while((line = reader.readLine()) != null){
+			//fileWriter.write(in.read()/*line + "\n");
+			System.out.println(in.read());
+		}
 
-        //gathering the inputs from the user
+		fileWriter.close();*/
+
+		//walker.walk(new LilListener(), tree);
+		
+		//System.out.println(tree.getSymbol());
+		//walker.walk(new tokenTyper(), tree);
+		//System.out.println(voc.getSymbolicName());
+		//
+		//walk(tree);
+	/*}catch (Exception e){
+		e.printStackTrace();
+	}*/
+
+	/*	System.out.println(tokens.size());
+	for(int x=0; x< tokens.size();x++){
+
+	try{
+		Token tmp = tokens.LT(x);
+		if(tmp.getTokenIndex()!=-1)
+			System.out.println(tmp.getText());
+	}catch (Exception e){
+		
+	}
+	}*/
+
+		walker.walk(new typeVal(), tree);
+
+	}
 
 
-        System.out.print("Please enter a destination path for your text file: ");
-        String filePath = scanner.nextLine();//where you want to write to
-
-        System.out.println("Please enter a command for command line");
-        String newCommand = scanner.nextLine();
-
-        //creating a fileWriter object that will write to a file given a file path
-        FileWriter fileWriter = null;
-        try {
-            fileWriter = new FileWriter(filePath);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        //prints command so the user can see what was entered
-        System.out.println("\nThe executed command is---->  " + newCommand + "  <----\n");
-
-        Process p;
-
-        try {
-            p = Runtime.getRuntime().exec("cmd /c " + newCommand);//cmd /c <SomeCommand>
-            p.waitFor();// causes the current thread to wait until this process has ended
-            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            String line;
-            fileWriter.close();
-            while ((line = reader.readLine()) != null) {
-                fileWriter.write(line + "\n");
-                System.out.println(line);
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+	static void walk(ParseTree t){
+		//Object tmp = t.getPayload();
+		//TerminalNodeImpl tmp0 = t.
+		System.out.println("Token Type: " + /*tmp.getToken() +*/ "\nValue : " + t.getText());
+		
+		int lim = t.getChildCount();
+		for(int i=0;i<lim;i++)
+			walk(t.getChild(i));
+	}
 
 
-        scanner.close();
-    }
+
+	/*static String walkA(ProgContext ctx){
+		return ctx.getChild(0).getText();
+	}*/
+
+
+	public static class typeVal extends LittleBaseListener {
+		public void enterProg(LittleParser.ProgContext ctx){
+			System.out.println("Token Type: " + ctx.getPaylod() + "\nValue: " + ctx.getChild(0).getText());
+		}
+	}
 }
