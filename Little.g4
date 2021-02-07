@@ -9,9 +9,9 @@ KEYWORD		: 'PROGRAM' | 'BEGIN' | 'END' | 'FUNCTION' | 'READ' | 'WRITE' | 'IF' | 
 
 IDENTIFIER	: ('a'..'z' | 'A'..'Z') ('a'..'z' | '0'..'9' | 'A'..'Z')*;
 
-INTLITERAL	: '0' | ('1'..'9')+;
+INTLITERAL	: ('1'..'9')+ '0'* | '0';
 
-FLOATLITERAL	: '1'..'9' ('0'..'9')* '.' ('0'..'9')*;
+FLOATLITERAL	: ('0' | ('1'..'9' ('0'..'9')*)) '.' ('0'..'9')*;
 
 STRINGLITERAL	: '"'('a'..'z' | 'A'..'Z' | ' ' | '!' | '@' | '#' | '$' | '%' | '^' '&' | ':' | ';' | '\\')+'"';
 
