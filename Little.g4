@@ -1,7 +1,11 @@
 /*Define Little grammar*/
 grammar Little;
 
-/*prog : (decl | expr)+ EOF;*/
+prog		: 'PROGRAM' 'IDENTIFIER' 'BEGIN' body 'END' WS* EOF;
+
+body		: (decl | expr)*;
+
+decl		:
 
 prog		: (KEYWORD | COMMENT | IDENTIFIER | INTLITERAL | STRINGLITERAL | FLOATLITERAL | OPERATOR | WS)+ EOF;
 
