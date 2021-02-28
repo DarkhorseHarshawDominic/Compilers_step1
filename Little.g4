@@ -82,5 +82,5 @@ STRINGLITERAL	: '"'('a'..'z' | 'A'..'Z' | ' ' | '!' | '@' | '#' | '$' | '%' | '^
 
 //OPERATOR	: ':=' | '+' | '-' | '*' | '/' | '=' | '!=' | '<' | '>' | '(' | ')' | ';' | ',' | '<=' | '>=';
 
-COMMENT	: '--' ->skip;
-WS	: [ \t\r\n]+ ->skip;
+COMMENT	: '--' ~[rn]+ ->channel(HIDDEN)/*skip*/;
+WS	: [ \t\r\n]+ ->channel(HIDDEN)/*skip*/;
