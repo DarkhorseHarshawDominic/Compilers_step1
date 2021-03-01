@@ -16,8 +16,32 @@ public class Driver{
 		ANTLRInputStream input = new ANTLRInputStream(is);
 		LittleLexer lexer = new LittleLexer(input);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
-		spaceWalk(tokens);
+		LittleParser parser = new LittleParser(tokens);
+		parser.removeErrorListeners();
+		parser.addErrorListener(new ADListener());
+		parser.prog();
+
+		//ParseTree tree = parser.prog();
+		System.out.println("Accepted");
+		//System.out.println("Not Accepted");
+		//System.out.println(tree.toStringTree(parser));
+		//spaceWalk(tokens);
 	}
+
+	public static class ADListener extends BaseErrorListener{
+
+		@Override
+		public void syntaxError(Recognizer<?, ?> recognizer,
+					Object offendingSymbol,
+					int line,
+					int charPostitionInLine,
+					String msg,
+					RecognitionException e)
+		{
+			System.out.println("Not Accepted");
+			System.exit(1);
+		}//syntaxError
+	}//ADListener
 
 	static void spaceWalk(CommonTokenStream tok){
 		int lim = tok.getNumberOfOnChannelTokens();
