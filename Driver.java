@@ -19,14 +19,13 @@ public class Driver{
 		LittleParser parser = new LittleParser(tokens);
 		parser.removeErrorListeners();
 		parser.addErrorListener(new ADListener());
-		parser.prog();
-
-		//ParseTree tree = parser.prog();
+		parser.addParseListener(new symLis());
+		ParseTree tree = parser.prog();
 		System.out.println("Accepted");
 		//System.out.println("Not Accepted");
 		//System.out.println(tree.toStringTree(parser));
 		//spaceWalk(tokens);
-	}
+	}//main
 
 	public static class ADListener extends BaseErrorListener{
 
@@ -69,13 +68,148 @@ public class Driver{
 					case 6:
 						System.out.println("TokenType: OPERATOR");
 						break;
-					default :
+					default:
 						break;
-				}
+				}//switch
 					System.out.println("Value: " + tok.LT(x).getText());
-			}
-		}
+			}//if
+		}//for
 
-	}
+	}//spaceWalk
 
-}
+}//Driver.java
+
+	class symLis extends LittleBaseListener{
+
+	@Override public void enterProg(LittleParser.ProgContext ctx) {
+		System.out.println("GLOBAL");
+	}//enterProg
+	@Override public void exitProg(LittleParser.ProgContext ctx) { }
+	@Override public void enterId(LittleParser.IdContext ctx) { }
+	@Override public void exitId(LittleParser.IdContext ctx) { }
+	@Override public void enterPgm_body(LittleParser.Pgm_bodyContext ctx) { }
+	@Override public void exitPgm_body(LittleParser.Pgm_bodyContext ctx) { }
+	@Override public void enterDecl(LittleParser.DeclContext ctx) { }
+	@Override public void exitDecl(LittleParser.DeclContext ctx) { }
+	@Override public void enterString_decl(LittleParser.String_declContext ctx) {}
+	@Override public void exitString_decl(LittleParser.String_declContext ctx) {
+		System.out.println(/*ctx.str().getText() +*/ "STRING " + ctx.id().getText());
+	}//exitString_decl
+	@Override public void enterStr(LittleParser.StrContext ctx) { }
+	@Override public void exitStr(LittleParser.StrContext ctx) { }
+	@Override public void enterVar_decl(LittleParser.Var_declContext ctx) { }
+	@Override public void exitVar_decl(LittleParser.Var_declContext ctx) {
+		//System.out.println(ctx.var_type().getText() + " " + ctx.id_list().id().getText());
+		//Captures only one id_tail
+		//Must find out how to capture n id_tail
+		//if(ctx.id_list().id_tail() != null)
+			//System.out.println(ctx.var_type().getText() + " " + ctx.id_list().id_tail().id().getText());
+		//System.out.println(ctx.getChildCount());
+		//System.out.println(ctx.getChild(1)/*.getChild(1).getChild(2).getChild(1)*/.getText());
+		if(ctx.id_list().id_tail() != null){
+			int lim = ctx.getChild(1).getText().length();
+			char buffer[] = new char[lim];
+			int loss = 0;
+
+			buffer[0] = ctx.getChild(1).getText().charAt(0);
+			char tmp;
+			int x = 1;
+			//rip&submit until it is done.
+			//no commas allowed
+			for(; x < lim; x++){
+				if(x < lim-1){//get next char
+						tmp = ctx.getChild(1).getText().charAt(x);
+					if(tmp != ','){
+						buffer[loss] = ctx.getChild(1).getText().charAt(x);
+						loss++;
+					}//if
+					else{
+						System.out.println(ctx.var_type().getText() + " " + new String(buffer));//verify
+						buffer = new char[lim-x];
+						loss = 0;
+					}//else
+				}//if
+			}//for
+			buffer[loss] = ctx.getChild(1).getText().charAt(x-1);
+			System.out.println(ctx.var_type().getText() + " " + new String(buffer));
+		}//if
+		else{//1 declaration
+			System.out.println(ctx.var_type().getText() + " " + ctx.id_list().id().getText());
+		}//else
+		
+	}//Var_decl
+	@Override public void enterVar_type(LittleParser.Var_typeContext ctx) { }
+	@Override public void exitVar_type(LittleParser.Var_typeContext ctx) { }
+	@Override public void enterAny_type(LittleParser.Any_typeContext ctx) { }
+	@Override public void exitAny_type(LittleParser.Any_typeContext ctx) { }
+	@Override public void enterId_list(LittleParser.Id_listContext ctx) { }
+	@Override public void exitId_list(LittleParser.Id_listContext ctx) { }
+	@Override public void enterId_tail(LittleParser.Id_tailContext ctx) { }
+	@Override public void exitId_tail(LittleParser.Id_tailContext ctx) {
+	}//exitId_tail
+	@Override public void enterParam_decl_list(LittleParser.Param_decl_listContext ctx) { }
+	@Override public void exitParam_decl_list(LittleParser.Param_decl_listContext ctx) { }
+	@Override public void enterParam_decl(LittleParser.Param_declContext ctx) { }
+	@Override public void exitParam_decl(LittleParser.Param_declContext ctx) { }
+	@Override public void enterParam_decl_tail(LittleParser.Param_decl_tailContext ctx) { }
+	@Override public void exitParam_decl_tail(LittleParser.Param_decl_tailContext ctx) { }
+	@Override public void enterFunc_declarations(LittleParser.Func_declarationsContext ctx) { }
+	@Override public void exitFunc_declarations(LittleParser.Func_declarationsContext ctx) { }
+	@Override public void enterFunc_decl(LittleParser.Func_declContext ctx) { }
+	@Override public void exitFunc_decl(LittleParser.Func_declContext ctx) { }
+	@Override public void enterFunc_body(LittleParser.Func_bodyContext ctx) { }
+	@Override public void exitFunc_body(LittleParser.Func_bodyContext ctx) { }
+	@Override public void enterStmt_list(LittleParser.Stmt_listContext ctx) { }
+	@Override public void exitStmt_list(LittleParser.Stmt_listContext ctx) { }
+	@Override public void enterStmt(LittleParser.StmtContext ctx) { }
+	@Override public void exitStmt(LittleParser.StmtContext ctx) { }
+	@Override public void enterBase_stmt(LittleParser.Base_stmtContext ctx) { }
+	@Override public void exitBase_stmt(LittleParser.Base_stmtContext ctx) { }
+	@Override public void enterAssign_stmt(LittleParser.Assign_stmtContext ctx) { }
+	@Override public void exitAssign_stmt(LittleParser.Assign_stmtContext ctx) { }
+	@Override public void enterAssign_expr(LittleParser.Assign_exprContext ctx) { }
+	@Override public void exitAssign_expr(LittleParser.Assign_exprContext ctx) { }
+	@Override public void enterRead_stmt(LittleParser.Read_stmtContext ctx) { }
+	@Override public void exitRead_stmt(LittleParser.Read_stmtContext ctx) { }
+	@Override public void enterWrite_stmt(LittleParser.Write_stmtContext ctx) { }
+	@Override public void exitWrite_stmt(LittleParser.Write_stmtContext ctx) { }
+	@Override public void enterReturn_stmt(LittleParser.Return_stmtContext ctx) { }
+	@Override public void exitReturn_stmt(LittleParser.Return_stmtContext ctx) { }
+	@Override public void enterExpr(LittleParser.ExprContext ctx) { }
+	@Override public void exitExpr(LittleParser.ExprContext ctx) { }
+	@Override public void enterExpr_prefix(LittleParser.Expr_prefixContext ctx) { }
+	@Override public void exitExpr_prefix(LittleParser.Expr_prefixContext ctx) { }
+	@Override public void enterFactor(LittleParser.FactorContext ctx) { }
+	@Override public void exitFactor(LittleParser.FactorContext ctx) { }
+	@Override public void enterFactor_prefix(LittleParser.Factor_prefixContext ctx) { }
+	@Override public void exitFactor_prefix(LittleParser.Factor_prefixContext ctx) { }
+	@Override public void enterPostfix_expr(LittleParser.Postfix_exprContext ctx) { }
+	@Override public void exitPostfix_expr(LittleParser.Postfix_exprContext ctx) { }
+	@Override public void enterCall_expr(LittleParser.Call_exprContext ctx) { }
+	@Override public void exitCall_expr(LittleParser.Call_exprContext ctx) { }
+	@Override public void enterExpr_list(LittleParser.Expr_listContext ctx) { }
+	@Override public void exitExpr_list(LittleParser.Expr_listContext ctx) { }
+	@Override public void enterExpr_list_tail(LittleParser.Expr_list_tailContext ctx) { }
+	@Override public void exitExpr_list_tail(LittleParser.Expr_list_tailContext ctx) { }
+	@Override public void enterPrimary(LittleParser.PrimaryContext ctx) { }
+	@Override public void exitPrimary(LittleParser.PrimaryContext ctx) { }
+	@Override public void enterAddop(LittleParser.AddopContext ctx) { }
+	@Override public void exitAddop(LittleParser.AddopContext ctx) { }
+	@Override public void enterMulop(LittleParser.MulopContext ctx) { }
+	@Override public void exitMulop(LittleParser.MulopContext ctx) { }
+	@Override public void enterIf_stmt(LittleParser.If_stmtContext ctx) { }
+	@Override public void exitIf_stmt(LittleParser.If_stmtContext ctx) { }
+	@Override public void enterElse_part(LittleParser.Else_partContext ctx) { }
+	@Override public void exitElse_part(LittleParser.Else_partContext ctx) { }
+	@Override public void enterCond(LittleParser.CondContext ctx) { }
+	@Override public void exitCond(LittleParser.CondContext ctx) { }
+	@Override public void enterCompop(LittleParser.CompopContext ctx) { }
+	@Override public void exitCompop(LittleParser.CompopContext ctx) { }
+	@Override public void enterWhile_stmt(LittleParser.While_stmtContext ctx) { }
+	@Override public void exitWhile_stmt(LittleParser.While_stmtContext ctx) { }
+	@Override public void enterEveryRule(ParserRuleContext ctx) { }
+	@Override public void exitEveryRule(ParserRuleContext ctx) { }
+	@Override public void visitTerminal(TerminalNode node) { }
+	@Override public void visitErrorNode(ErrorNode node) { }
+}//symLis
+
