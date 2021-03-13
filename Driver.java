@@ -79,10 +79,11 @@ public class Driver{
 
 }//Driver.java
 
-	class symLis extends LittleBaseListener{
+class symLis extends LittleBaseListener{
 
-	@Override public void enterProg(LittleParser.ProgContext ctx) {
-		System.out.println("GLOBAL");
+	@Override
+	public void enterProg(LittleParser.ProgContext ctx) {
+		System.out.println("Symbol table GLOBAL");
 	}//enterProg
 	@Override public void exitProg(LittleParser.ProgContext ctx) { }
 	@Override public void enterId(LittleParser.IdContext ctx) { }
@@ -92,13 +93,15 @@ public class Driver{
 	@Override public void enterDecl(LittleParser.DeclContext ctx) { }
 	@Override public void exitDecl(LittleParser.DeclContext ctx) { }
 	@Override public void enterString_decl(LittleParser.String_declContext ctx) {}
-	@Override public void exitString_decl(LittleParser.String_declContext ctx) {
-		System.out.println(/*ctx.str().getText() +*/ "STRING " + ctx.id().getText());
+	@Override
+	public void exitString_decl(LittleParser.String_declContext ctx) {
+		System.out.println(/*ctx.str().getText() +*/ "name " + ctx.id().getText() + "\ttype STRING\tvalue " + ctx.str().getText());
 	}//exitString_decl
 	@Override public void enterStr(LittleParser.StrContext ctx) { }
 	@Override public void exitStr(LittleParser.StrContext ctx) { }
 	@Override public void enterVar_decl(LittleParser.Var_declContext ctx) { }
-	@Override public void exitVar_decl(LittleParser.Var_declContext ctx) {
+	@Override
+	public void exitVar_decl(LittleParser.Var_declContext ctx) {
 		//System.out.println(ctx.var_type().getText() + " " + ctx.id_list().id().getText());
 		//Captures only one id_tail
 		//Must find out how to capture n id_tail
@@ -124,14 +127,14 @@ public class Driver{
 						loss++;
 					}//if
 					else{
-						System.out.println(ctx.var_type().getText() + " " + new String(buffer));//verify
+						System.out.println("name " + new String(buffer) + "\ttype " + ctx.var_type().getText());//verify
 						buffer = new char[lim-x];
 						loss = 0;
 					}//else
 				}//if
 			}//for
 			buffer[loss] = ctx.getChild(1).getText().charAt(x-1);
-			System.out.println(ctx.var_type().getText() + " " + new String(buffer));
+			System.out.println("name " + new String(buffer) + "\ttype " + ctx.var_type().getText());
 		}//if
 		else{//1 declaration
 			System.out.println(ctx.var_type().getText() + " " + ctx.id_list().id().getText());
@@ -156,7 +159,11 @@ public class Driver{
 	@Override public void enterFunc_declarations(LittleParser.Func_declarationsContext ctx) { }
 	@Override public void exitFunc_declarations(LittleParser.Func_declarationsContext ctx) { }
 	@Override public void enterFunc_decl(LittleParser.Func_declContext ctx) { }
-	@Override public void exitFunc_decl(LittleParser.Func_declContext ctx) { }
+	@Override
+	public void exitFunc_decl(LittleParser.Func_declContext ctx) {
+		System.out.println("name " + ctx.id().getText() + "\ttype " + ctx.any_type().getText() + "\tparam " + ctx.param_decl_list().getText());
+		//change scope
+	}//exitFunc_decl
 	@Override public void enterFunc_body(LittleParser.Func_bodyContext ctx) { }
 	@Override public void exitFunc_body(LittleParser.Func_bodyContext ctx) { }
 	@Override public void enterStmt_list(LittleParser.Stmt_listContext ctx) { }
@@ -197,16 +204,33 @@ public class Driver{
 	@Override public void exitAddop(LittleParser.AddopContext ctx) { }
 	@Override public void enterMulop(LittleParser.MulopContext ctx) { }
 	@Override public void exitMulop(LittleParser.MulopContext ctx) { }
-	@Override public void enterIf_stmt(LittleParser.If_stmtContext ctx) { }
-	@Override public void exitIf_stmt(LittleParser.If_stmtContext ctx) { }
-	@Override public void enterElse_part(LittleParser.Else_partContext ctx) { }
-	@Override public void exitElse_part(LittleParser.Else_partContext ctx) { }
+	@Override
+	public void enterIf_stmt(LittleParser.If_stmtContext ctx) {
+		//change scope
+	}//enterIf_stmt
+	@Override
+	public void exitIf_stmt(LittleParser.If_stmtContext ctx) {
+
+	}//exitIf_stmt
+	@Override public void enterElse_part(LittleParser.Else_partContext ctx) {
+		//change scope
+	}//enterElse_part
+	@Override
+	public void exitElse_part(LittleParser.Else_partContext ctx) {
+		//change scope
+	}//exitElse_part
 	@Override public void enterCond(LittleParser.CondContext ctx) { }
 	@Override public void exitCond(LittleParser.CondContext ctx) { }
 	@Override public void enterCompop(LittleParser.CompopContext ctx) { }
 	@Override public void exitCompop(LittleParser.CompopContext ctx) { }
-	@Override public void enterWhile_stmt(LittleParser.While_stmtContext ctx) { }
-	@Override public void exitWhile_stmt(LittleParser.While_stmtContext ctx) { }
+	@Override
+	public void enterWhile_stmt(LittleParser.While_stmtContext ctx) {
+		//change scope
+	}//enterWhile_stmt
+	@Override
+	public void exitWhile_stmt(LittleParser.While_stmtContext ctx) {
+		//change scope
+	}//exitWhile_stmt
 	@Override public void enterEveryRule(ParserRuleContext ctx) { }
 	@Override public void exitEveryRule(ParserRuleContext ctx) { }
 	@Override public void visitTerminal(TerminalNode node) { }
