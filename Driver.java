@@ -80,26 +80,33 @@ public class Driver{
 }//Driver.java
 
 class symLis extends LittleBaseListener{
+	hashmap arr;
+	String scope;
 
+	symLis(){
+		arr = new hashmap();
+	}//symLis
 	@Override
 	public void enterProg(LittleParser.ProgContext ctx) {
 		System.out.println("Symbol table GLOBAL");
+		scope = "GLOBAL";
 	}//enterProg
-	@Override public void exitProg(LittleParser.ProgContext ctx) { }
+	/*@Override public void exitProg(LittleParser.ProgContext ctx) { }
 	@Override public void enterId(LittleParser.IdContext ctx) { }
 	@Override public void exitId(LittleParser.IdContext ctx) { }
 	@Override public void enterPgm_body(LittleParser.Pgm_bodyContext ctx) { }
 	@Override public void exitPgm_body(LittleParser.Pgm_bodyContext ctx) { }
 	@Override public void enterDecl(LittleParser.DeclContext ctx) { }
 	@Override public void exitDecl(LittleParser.DeclContext ctx) { }
-	@Override public void enterString_decl(LittleParser.String_declContext ctx) {}
+	@Override public void enterString_decl(LittleParser.String_declContext ctx) {}*/
 	@Override
 	public void exitString_decl(LittleParser.String_declContext ctx) {
 		System.out.println(/*ctx.str().getText() +*/ "name " + ctx.id().getText() + "\ttype STRING\tvalue " + ctx.str().getText());
+		arr.insert(scope, "STRING", ctx.id().getText(), null);
 	}//exitString_decl
-	@Override public void enterStr(LittleParser.StrContext ctx) { }
+	/*@Override public void enterStr(LittleParser.StrContext ctx) { }
 	@Override public void exitStr(LittleParser.StrContext ctx) { }
-	@Override public void enterVar_decl(LittleParser.Var_declContext ctx) { }
+	@Override public void enterVar_decl(LittleParser.Var_declContext ctx) { }*/
 	@Override
 	public void exitVar_decl(LittleParser.Var_declContext ctx) {
 		//System.out.println(ctx.var_type().getText() + " " + ctx.id_list().id().getText());
@@ -138,10 +145,9 @@ class symLis extends LittleBaseListener{
 		}//if
 		else{//1 declaration
 			System.out.println(ctx.var_type().getText() + " " + ctx.id_list().id().getText());
-		}//else
-		
+		}//else		
 	}//Var_decl
-	@Override public void enterVar_type(LittleParser.Var_typeContext ctx) { }
+	/*@Override public void enterVar_type(LittleParser.Var_typeContext ctx) { }
 	@Override public void exitVar_type(LittleParser.Var_typeContext ctx) { }
 	@Override public void enterAny_type(LittleParser.Any_typeContext ctx) { }
 	@Override public void exitAny_type(LittleParser.Any_typeContext ctx) { }
@@ -158,13 +164,13 @@ class symLis extends LittleBaseListener{
 	@Override public void exitParam_decl_tail(LittleParser.Param_decl_tailContext ctx) { }
 	@Override public void enterFunc_declarations(LittleParser.Func_declarationsContext ctx) { }
 	@Override public void exitFunc_declarations(LittleParser.Func_declarationsContext ctx) { }
-	@Override public void enterFunc_decl(LittleParser.Func_declContext ctx) { }
+	@Override public void enterFunc_decl(LittleParser.Func_declContext ctx) { }*/
 	@Override
 	public void exitFunc_decl(LittleParser.Func_declContext ctx) {
 		System.out.println("name " + ctx.id().getText() + "\ttype " + ctx.any_type().getText() + "\tparam " + ctx.param_decl_list().getText());
-		//change scope
+		arr.up();//change scope
 	}//exitFunc_decl
-	@Override public void enterFunc_body(LittleParser.Func_bodyContext ctx) { }
+	/*@Override public void enterFunc_body(LittleParser.Func_bodyContext ctx) { }
 	@Override public void exitFunc_body(LittleParser.Func_bodyContext ctx) { }
 	@Override public void enterStmt_list(LittleParser.Stmt_listContext ctx) { }
 	@Override public void exitStmt_list(LittleParser.Stmt_listContext ctx) { }
@@ -203,37 +209,217 @@ class symLis extends LittleBaseListener{
 	@Override public void enterAddop(LittleParser.AddopContext ctx) { }
 	@Override public void exitAddop(LittleParser.AddopContext ctx) { }
 	@Override public void enterMulop(LittleParser.MulopContext ctx) { }
-	@Override public void exitMulop(LittleParser.MulopContext ctx) { }
+	@Override public void exitMulop(LittleParser.MulopContext ctx) { }*/
 	@Override
 	public void enterIf_stmt(LittleParser.If_stmtContext ctx) {
-		//change scope
+		arr.up();//change scope
 	}//enterIf_stmt
 	@Override
 	public void exitIf_stmt(LittleParser.If_stmtContext ctx) {
-
+		arr.down();//change scope
 	}//exitIf_stmt
 	@Override public void enterElse_part(LittleParser.Else_partContext ctx) {
-		//change scope
+		arr.up();//change scope
 	}//enterElse_part
 	@Override
 	public void exitElse_part(LittleParser.Else_partContext ctx) {
-		//change scope
+		arr.down();//change scope
 	}//exitElse_part
-	@Override public void enterCond(LittleParser.CondContext ctx) { }
+	/*@Override public void enterCond(LittleParser.CondContext ctx) { }
 	@Override public void exitCond(LittleParser.CondContext ctx) { }
 	@Override public void enterCompop(LittleParser.CompopContext ctx) { }
-	@Override public void exitCompop(LittleParser.CompopContext ctx) { }
+	@Override public void exitCompop(LittleParser.CompopContext ctx) { }*/
 	@Override
 	public void enterWhile_stmt(LittleParser.While_stmtContext ctx) {
-		//change scope
+		arr.up();//change scope
 	}//enterWhile_stmt
 	@Override
 	public void exitWhile_stmt(LittleParser.While_stmtContext ctx) {
-		//change scope
+		arr.down();//change scope
 	}//exitWhile_stmt
-	@Override public void enterEveryRule(ParserRuleContext ctx) { }
+	/*@Override public void enterEveryRule(ParserRuleContext ctx) { }
 	@Override public void exitEveryRule(ParserRuleContext ctx) { }
 	@Override public void visitTerminal(TerminalNode node) { }
-	@Override public void visitErrorNode(ErrorNode node) { }
+	@Override public void visitErrorNode(ErrorNode node) { }*/
+
+	class node{
+		//private int scope;//scope level
+		String scopeName;//key for scope level classification
+		String type;
+		String id;
+		String value;//not in-use for int, float declarations
+		private node next;
+		private node prev;
+
+		node(){	}//node
+
+		node(/*int newScope, */String newScopeName, String newType, String newId, String newValue){
+			//scope = newScopeName;
+			scopeName = newScopeName;
+			type = newType;
+			id = newId;
+			value = newValue;
+		}//node
+
+		void setNxt(node nxt){
+			next = nxt;
+		}//setNext
+
+		node nxt(){
+			return next;
+		}//next
+
+		void setPrv(node prv){
+			prev = prv;
+		}//setPrev
+
+		node prv(){
+			return prev;
+		}//ascend
+
+		void insert(node in){
+			node tmp = descend(next);
+			tmp.setNxt(in);
+			if(tmp != null)
+				in.setPrv(tmp);
+			System.out.println("insertdone");
+		}//insert
+
+		node descend(node nxt){
+			System.out.println("descending");
+			if(nxt == null)
+				return this;
+			return descend(nxt.nxt());
+		}//descend
+
+		int descend(boolean f, node nxt){//tree height
+
+			if(nxt == null)
+				return 0;
+			return descend(true, nxt.nxt()) + 1;
+		}//descend
+
+		node ascend(node prv){
+			if(prv == null)
+				return this;
+			return ascend(prv.prv());
+		}//ascend
+	}//node
+
+	class hashmap{
+		private node[] arr;
+		private int length;
+		private int size;
+		private int scopeCount;
+
+		hashmap(){
+			length = 2;
+			size = 0;
+			scopeCount = 0;
+			arr = new node[2];
+			//for(int x = 0;x < length;x++)
+				//arr[x] = new node();
+		}//hashmap
+
+		hashmap(int newLength){
+			length = newLength;
+			size = 0;
+			scopeCount = 0;
+			//for(int x = 0;x < length;x++)
+				//arr[x] = new node();
+			arr = new node[newLength];
+		}//hashmap
+
+		int F(){//hash function
+			return size/*sym.charAt(0) % length*/;
+		}//F
+
+		int P(int lvl){//probe function
+			return lvl+1;
+		}//P
+
+		int adjust(int src){//prevents out-of-bounds
+			if(src >= length)
+				return src % length;
+			return src;
+		}//adjust
+
+		boolean L(){//Load function
+			return size == length;
+		}//L
+
+		void insert(String newScopeName, String newType, String newId, String newValue){//flag indicates new scope
+			int dst = F();
+			if(size == 0){//best case
+				System.out.println("inserting0");
+				arr[dst].insert(new node(newScopeName, newType, newId, newValue));
+			}//if
+			else{
+				if(search(newScopeName, newId) == true){//duplicate found;end compilation
+					System.out.println("DECLARATION ERROR <" + newId + ">");
+					System.exit(1);
+				}//if
+
+				int x = 1;
+				while(arr[dst] != null ){//occupied
+
+					dst = dst + P(x++);
+					dst = adjust(dst);
+				}//while
+				arr[dst].insert(new node(newScopeName, newType, newId, newValue));
+				System.out.println("CONNECTING");
+				if(F() != 0 || arr[dst].descend(true,arr[dst]) == 0)//0 == GLOBAL SCOPE and empty tree at arr[dst]
+					arr[dst].setPrv(arr[F()-1]);//Connect to preceding scope
+			}//else
+			size++;//inc size
+			if(L() == true)//Determine Load
+				grow();
+		}//insert
+
+		void up(){
+			scopeCount++;
+		}//escalate
+
+		void down(){
+			scopeCount--;
+		}//deescalate
+
+		void grow(){
+			node[] newArr = new node[length*2];
+			for(int x = 0;x < size; x++)//fill new array with old elements
+				newArr[x] = arr[x];
+		}//grow
+
+		boolean search(String scopeName, String id){
+			int dst = F();
+			boolean L,R;
+			L = R = false;
+
+			if(arr[dst] != null){
+				L = searchL(arr[dst].next, id);
+				R = searchR(arr[dst].prev, id);
+			}//if
+				return L || R;
+		}//search
+
+		boolean searchL(node left, String id){
+			if(left != null){
+				if(left.id == id)//duplicate found
+					return true;
+				return searchL(left.prv(), id);
+			}//if
+			return false;
+		}//searchL
+
+		boolean searchR(node right, String id){
+			if(right != null){
+				if(right.id == id)//duplicate found
+					return true;
+				return searchR(right.nxt(), id);
+			}//if
+			return false;
+		}//searchR
+
+	}//hashmap
 }//symLis
 
