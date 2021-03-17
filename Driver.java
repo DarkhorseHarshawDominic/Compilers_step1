@@ -102,7 +102,7 @@ class symLis extends LittleBaseListener{
 	@Override
 	public void exitString_decl(LittleParser.String_declContext ctx) {
 		System.out.println(/*ctx.str().getText() +*/ "name " + ctx.id().getText() + "\ttype STRING\tvalue " + ctx.str().getText());
-		arr.insert(scope, "STRING", ctx.id().getText(), null);
+		arr.insert(scope, "STRING", ctx.id().getText(), ctx.str().getText());
 	}//exitString_decl
 	/*@Override public void enterStr(LittleParser.StrContext ctx) { }
 	@Override public void exitStr(LittleParser.StrContext ctx) { }
@@ -169,6 +169,7 @@ class symLis extends LittleBaseListener{
 	public void exitFunc_decl(LittleParser.Func_declContext ctx) {
 		System.out.println("name " + ctx.id().getText() + "\ttype " + ctx.any_type().getText() + "\tparam " + ctx.param_decl_list().getText());
 		arr.up();//change scope
+		arr.insert(ctx.id().getText(), "FUNCTION", ctx.id().getText(), ctx.param_decl_list().getText());
 	}//exitFunc_decl
 	/*@Override public void enterFunc_body(LittleParser.Func_bodyContext ctx) { }
 	@Override public void exitFunc_body(LittleParser.Func_bodyContext ctx) { }
@@ -254,7 +255,7 @@ class symLis extends LittleBaseListener{
 		node(){	}//node
 
 		node(/*int newScope, */String newScopeName, String newType, String newId, String newValue){
-			//scope = newScopeName;
+			//scope = newScopeName;		
 			scopeName = newScopeName;
 			type = newType;
 			id = newId;
@@ -278,12 +279,14 @@ class symLis extends LittleBaseListener{
 		}//ascend
 
 		void insert(node in){
+			System.out.println("insertbegin");
 			node tmp = descend(next);
 			tmp.setNxt(in);
 			if(tmp != null)
 				in.setPrv(tmp);
 			System.out.println("insertdone");
 		}//insert
+
 
 		node descend(node nxt){
 			System.out.println("descending");
@@ -293,9 +296,10 @@ class symLis extends LittleBaseListener{
 		}//descend
 
 		int descend(boolean f, node nxt){//tree height
-
+			System.out.println("descending..");
 			if(nxt == null)
 				return 0;
+			System.out.println("returning");
 			return descend(true, nxt.nxt()) + 1;
 		}//descend
 
@@ -305,6 +309,26 @@ class symLis extends LittleBaseListener{
 			return ascend(prv.prv());
 		}//ascend
 	}//node
+
+	/*class table{
+		private node head;
+		private int size;
+		private int scopeCount;
+
+		table(node newHead){
+			head = newHead;
+			size = 0;
+			scopeCount = 0;
+		}//table
+
+		insert(String newScopeName, String newType, String newId, String newValue){
+			head.insert(String newScopeName, String newType, String newId, String newValue);
+		}//insert
+
+		insert(String newType, String newId, String newValue){
+			head.insert(newType, newId, newValue);
+		}//insert
+	}table*/
 
 	class hashmap{
 		private node[] arr;
@@ -345,75 +369,117 @@ class symLis extends LittleBaseListener{
 		}//adjust
 
 		boolean L(){//Load function
-			return size == length;
+			return F()/*scopeCount*/ >= length-1;
 		}//L
 
 		void insert(String newScopeName, String newType, String newId, String newValue){//flag indicates new scope
 			int dst = F();
 			if(size == 0){//best case
 				System.out.println("inserting0");
-				arr[dst].insert(new node(newScopeName, newType, newId, newValue));
+				arr[dst] = new node(newScopeName, newType, newId, newValue);
+				//arr[dst].insert(new node(newScopeName, newType, newId, newValue));
 			}//if
 			else{
-				if(search(newScopeName, newId) == true){//duplicate found;end compilation
+				if(search(newId) == true){//duplicate found;end compilation
 					System.out.println("DECLARATION ERROR <" + newId + ">");
 					System.exit(1);
 				}//if
 
-				int x = 1;
+				/*int x = 1;
 				while(arr[dst] != null ){//occupied
 
 					dst = dst + P(x++);
 					dst = adjust(dst);
-				}//while
-				arr[dst].insert(new node(newScopeName, newType, newId, newValue));
-				System.out.println("CONNECTING");
-				if(F() != 0 || arr[dst].descend(true,arr[dst]) == 0)//0 == GLOBAL SCOPE and empty tree at arr[dst]
+				}while*/
+				if(arr[dst] != null)
+					arr[dst].insert(new node(newScopeName, newType, newId, newValue));
+				else
+					arr[dst] = new node(newScopeName, newType, newId, newValue);
+				System.out.println("CONNECTING" + dst);
+				if(F() != 0 && arr[dst].descend(true,arr[dst].nxt()) == 0)//0 == GLOBAL SCOPE and empty tree at arr[dst]
 					arr[dst].setPrv(arr[F()-1]);//Connect to preceding scope
 			}//else
 			size++;//inc size
-			if(L() == true)//Determine Load
-				grow();
+			grow();
 		}//insert
 
 		void up(){
 			scopeCount++;
+			System.out.println("scopeCount " + scopeCount);
+			grow();
 		}//escalate
 
 		void down(){
 			scopeCount--;
+			System.out.println("scopeCount " + scopeCount);
+			grow();
 		}//deescalate
 
 		void grow(){
-			node[] newArr = new node[length*2];
-			for(int x = 0;x < size; x++)//fill new array with old elements
-				newArr[x] = arr[x];
+			if(L() == true){
+				System.out.println("GROW");
+				node[] newArr = new node[length*2];
+				int y = F();
+				for(int x = 0;x < y; x++)//fill new array with old elements
+					arr[x] = arr[x];
+				arr = newArr;
+				length = length*2;
+				stats();
+			}//if
 		}//grow
 
-		boolean search(String scopeName, String id){
-			int dst = F();
+		void stats(){
+			System.out.println("length " + length + "\nsize " + size + "\nscopeCount " + scopeCount);
+			print();
+		}//stats
+
+		void print(){
+			for(int x = 0; x <= scopeCount; x++)
+				print(arr[x]);
+		}//print
+
+		void print(node N){
+			if(N.nxt() == null){
+				if(N.type.equals("INT") || N.type.equals("FLOAT"))
+					System.out.println("name <" + N.id + ">\ttype <" + N.type + ">");
+				else
+					System.out.println("name <" + N.id + ">\ttype <" + N.type + ">\tvalue " + N.value);
+			}//if
+			else
+				print(N.nxt());
+		}//print
+
+
+		boolean search(String id){
+			int x = F();
+			if(x == 0)//GLOBAL SCOPE
+				return searchR(arr[x], id);
+
+			//int dst = F();
 			boolean L,R;
 			L = R = false;
-
-			if(arr[dst] != null){
-				L = searchL(arr[dst].next, id);
-				R = searchR(arr[dst].prev, id);
-			}//if
-				return L || R;
+			System.out.println("Searching");
+			/*if(arr[dst] != null){
+				L = searchL(arr[dst].prv(), id);
+				R = searchR(arr[dst].nxt(), id);
+			}if*/
+			System.out.println(searchL(arr[x], id) || searchR(arr[x], id));
+				return searchL(arr[x], id) || searchR(arr[x], id);
 		}//search
 
 		boolean searchL(node left, String id){
+			System.out.println("LEFT");
 			if(left != null){
-				if(left.id == id)//duplicate found
-					return true;
-				return searchL(left.prv(), id);
-			}//if
+				int x = 0;
+				return searchR(arr[F()-++x], id);
+			}//else if
 			return false;
 		}//searchL
 
 		boolean searchR(node right, String id){
+			System.out.println("RIGHT");
 			if(right != null){
-				if(right.id == id)//duplicate found
+				if(right.id.equals(id))//duplicate found
 					return true;
 				return searchR(right.nxt(), id);
 			}//if
