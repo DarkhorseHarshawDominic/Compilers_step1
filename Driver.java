@@ -86,13 +86,19 @@ class symLis extends LittleBaseListener{
 	symLis(){
 		arr = new hashmap();
 	}//symLis
+
+	hashmap arr(){
+		return arr;
+	}//arr
 	@Override
 	public void enterProg(LittleParser.ProgContext ctx) {
-		System.out.println("Symbol table GLOBAL");
-		scope = "GLOBAL";
+		//System.out.println("Symbol table GLOBAL");
+		arr.scope("GLOBAL");
 	}//enterProg
-	/*@Override public void exitProg(LittleParser.ProgContext ctx) { }
-	@Override public void enterId(LittleParser.IdContext ctx) { }
+	@Override public void exitProg(LittleParser.ProgContext ctx) {
+		arr.print();
+	}//exitProg
+	/*@Override public void enterId(LittleParser.IdContext ctx) { }
 	@Override public void exitId(LittleParser.IdContext ctx) { }
 	@Override public void enterPgm_body(LittleParser.Pgm_bodyContext ctx) { }
 	@Override public void exitPgm_body(LittleParser.Pgm_bodyContext ctx) { }
@@ -101,8 +107,8 @@ class symLis extends LittleBaseListener{
 	@Override public void enterString_decl(LittleParser.String_declContext ctx) {}*/
 	@Override
 	public void exitString_decl(LittleParser.String_declContext ctx) {
-		System.out.println(/*ctx.str().getText() +*/ "name " + ctx.id().getText() + "\ttype STRING\tvalue " + ctx.str().getText());
-		arr.insert(scope, "STRING", ctx.id().getText(), ctx.str().getText());
+		//System.out.println(/*ctx.str().getText() +*/ "name " + ctx.id().getText()/* + "\ttype STRING\tvalue " + ctx.str().getText()*/);
+		arr.insert(/*scope, */"STRING", ctx.id().getText(), ctx.str().getText());
 	}//exitString_decl
 	/*@Override public void enterStr(LittleParser.StrContext ctx) { }
 	@Override public void exitStr(LittleParser.StrContext ctx) { }
@@ -134,18 +140,20 @@ class symLis extends LittleBaseListener{
 						loss++;
 					}//if
 					else{
-						System.out.println("name " + new String(buffer) + "\ttype " + ctx.var_type().getText());//verify
+						//System.out.println("name " + new String(buffer)/* + "\ttype " + ctx.var_type().getText()*/);//verify
+						arr.insert(ctx.var_type().getText(), new String(buffer), "");
 						buffer = new char[lim-x];
 						loss = 0;
 					}//else
 				}//if
 			}//for
 			buffer[loss] = ctx.getChild(1).getText().charAt(x-1);
-			System.out.println("name " + new String(buffer) + "\ttype " + ctx.var_type().getText());
+			//System.out.println("name " + new String(buffer)/* + " type " + ctx.var_type().getText()*/);
+			arr.insert(ctx.var_type().getText(), new String(buffer), null);
 		}//if
 		else{//1 declaration
-			System.out.println(ctx.var_type().getText() + " " + ctx.id_list().id().getText());
-		}//else		
+			//System.out.println(ctx.var_type().getText() + " " + ctx.id_list().id().getText());
+		}//else	
 	}//Var_decl
 	/*@Override public void enterVar_type(LittleParser.Var_typeContext ctx) { }
 	@Override public void exitVar_type(LittleParser.Var_typeContext ctx) { }
@@ -167,13 +175,65 @@ class symLis extends LittleBaseListener{
 	@Override public void enterFunc_decl(LittleParser.Func_declContext ctx) { }*/
 	@Override
 	public void exitFunc_decl(LittleParser.Func_declContext ctx) {
-		System.out.println("name " + ctx.id().getText() + "\ttype " + ctx.any_type().getText() + "\tparam " + ctx.param_decl_list().getText());
-		arr.up();//change scope
-		arr.insert(ctx.id().getText(), "FUNCTION", ctx.id().getText(), ctx.param_decl_list().getText());
+		//System.out.println("name " + ctx.id().getText() + "\ttype " + ctx.any_type().getText() + "\tparam " + ctx.param_decl_list().getText());
+		///////arr.up(ctx.id().getText());//change scope
+		//arr.insert(/*ctx.id().getText(), */"FUNCTION", ctx.id().getText(), ""/*ctx.param_decl_list().getText()*/);
+		arr.up(ctx.id().getText());//change scope
+
+		//rip&submit until it is done
+		int lim = ctx.param_decl_list().getText().length();
+		//System.out.println(lim);
+		char []type;
+		char []type0;
+
+		int loss = 0;
+
+		if(lim > 0){
+			while(loss < lim){
+				//System.out.println(lim + " " + loss);
+				//System.out.println(loss < lim);
+				//System.out.println(lim);
+
+				type  = new char[lim];
+				type0 = new char[lim];
+				int z = 0;
+				while(z != 1 && loss < lim){//first word
+					char tmp = ctx.param_decl_list().getText().charAt(loss);
+					type[loss] = tmp;
+					loss++;
+					//System.out.println(loss);
+					if(tmp == 'T' || tmp == 'G'){
+						z = 1;//break inner loop
+						//System.out.println(z);
+					}//if
+
+				}//while
+
+				//System.out.println("OUT");
+				System.out.println(type);
+
+				while(z != 0 && loss < lim){//second word
+					System.out.println("IN");
+					char tmp = ctx.param_decl_list().getText().charAt(loss);
+					//System.out.println(tmp);
+					type0[loss] = tmp;
+					loss++;
+					if(tmp == 'F' || tmp == 'I' || tmp == 'S')
+						z = 0;//break inner loop
+				}//for
+
+				System.out.println(type0);
+				//loss++;
+				//System.out.println(loss);
+				arr.insert(new String(type), new String(type0), null);
+		}//while
+		}//if
 	}//exitFunc_decl
-	/*@Override public void enterFunc_body(LittleParser.Func_bodyContext ctx) { }
-	@Override public void exitFunc_body(LittleParser.Func_bodyContext ctx) { }
-	@Override public void enterStmt_list(LittleParser.Stmt_listContext ctx) { }
+	//@Override public void enterFunc_body(LittleParser.Func_bodyContext ctx) { }
+	@Override public void exitFunc_body(LittleParser.Func_bodyContext ctx) {
+		arr.down();
+	}//exitFunc_body
+	/*@Override public void enterStmt_list(LittleParser.Stmt_listContext ctx) { }
 	@Override public void exitStmt_list(LittleParser.Stmt_listContext ctx) { }
 	@Override public void enterStmt(LittleParser.StmtContext ctx) { }
 	@Override public void exitStmt(LittleParser.StmtContext ctx) { }
@@ -213,14 +273,14 @@ class symLis extends LittleBaseListener{
 	@Override public void exitMulop(LittleParser.MulopContext ctx) { }*/
 	@Override
 	public void enterIf_stmt(LittleParser.If_stmtContext ctx) {
-		arr.up();//change scope
+		arr.up(null);//change scope
 	}//enterIf_stmt
 	@Override
 	public void exitIf_stmt(LittleParser.If_stmtContext ctx) {
 		arr.down();//change scope
 	}//exitIf_stmt
 	@Override public void enterElse_part(LittleParser.Else_partContext ctx) {
-		arr.up();//change scope
+		arr.up(null);//change scope
 	}//enterElse_part
 	@Override
 	public void exitElse_part(LittleParser.Else_partContext ctx) {
@@ -232,7 +292,7 @@ class symLis extends LittleBaseListener{
 	@Override public void exitCompop(LittleParser.CompopContext ctx) { }*/
 	@Override
 	public void enterWhile_stmt(LittleParser.While_stmtContext ctx) {
-		arr.up();//change scope
+		arr.up(null);//change scope
 	}//enterWhile_stmt
 	@Override
 	public void exitWhile_stmt(LittleParser.While_stmtContext ctx) {
@@ -279,27 +339,29 @@ class symLis extends LittleBaseListener{
 		}//ascend
 
 		void insert(node in){
-			System.out.println("insertbegin");
-			node tmp = descend(next);
+			//System.out.println("insertbegin");
+			node tmp = descend(this);
 			tmp.setNxt(in);
-			if(tmp != null)
-				in.setPrv(tmp);
-			System.out.println("insertdone");
+			in.setPrv(tmp);
+			stats();
+			//System.out.println(this.id + " " + tmp.id + " " + in.id);
+
+			//System.out.println("insertdone");
 		}//insert
 
 
 		node descend(node nxt){
-			System.out.println("descending");
-			if(nxt == null)
-				return this;
+			//System.out.println("descending");
+			if(nxt.nxt() == null)
+				return nxt;
 			return descend(nxt.nxt());
 		}//descend
 
 		int descend(boolean f, node nxt){//tree height
-			System.out.println("descending..");
+			//System.out.println("descending..");
 			if(nxt == null)
 				return 0;
-			System.out.println("returning");
+			//System.out.println("returning");
 			return descend(true, nxt.nxt()) + 1;
 		}//descend
 
@@ -308,46 +370,34 @@ class symLis extends LittleBaseListener{
 				return this;
 			return ascend(prv.prv());
 		}//ascend
+
+		void stats(){
+			System.out.println("scopeName " + scopeName + "\ntype " + type + "\nid " + id);
+			if(value != null)
+			System.out.println("value " + value);
+		}//stats
 	}//node
-
-	/*class table{
-		private node head;
-		private int size;
-		private int scopeCount;
-
-		table(node newHead){
-			head = newHead;
-			size = 0;
-			scopeCount = 0;
-		}//table
-
-		insert(String newScopeName, String newType, String newId, String newValue){
-			head.insert(String newScopeName, String newType, String newId, String newValue);
-		}//insert
-
-		insert(String newType, String newId, String newValue){
-			head.insert(newType, newId, newValue);
-		}//insert
-	}table*/
 
 	class hashmap{
 		private node[] arr;
 		private int length;
 		private int size;
 		private int scopeCount;
+		private String currScope;
+		private int blockCount;
 
 		hashmap(){
-			length = 2;
+			length = 4;
 			size = 0;
 			scopeCount = 0;
-			arr = new node[2];
+			arr = new node[4];
+			blockCount = 1;
 			//for(int x = 0;x < length;x++)
 				//arr[x] = new node();
 		}//hashmap
 
 		hashmap(int newLength){
 			length = newLength;
-			size = 0;
 			scopeCount = 0;
 			//for(int x = 0;x < length;x++)
 				//arr[x] = new node();
@@ -355,7 +405,7 @@ class symLis extends LittleBaseListener{
 		}//hashmap
 
 		int F(){//hash function
-			return size/*sym.charAt(0) % length*/;
+			return scopeCount;
 		}//F
 
 		int P(int lvl){//probe function
@@ -369,84 +419,101 @@ class symLis extends LittleBaseListener{
 		}//adjust
 
 		boolean L(){//Load function
-			return F()/*scopeCount*/ >= length-1;
+			return scopeCount >= length-1;
 		}//L
 
-		void insert(String newScopeName, String newType, String newId, String newValue){//flag indicates new scope
+		void insert(/*String newScopeName, */String newType, String newId, String newValue){//flag indicates new scope
 			int dst = F();
 			if(size == 0){//best case
-				System.out.println("inserting0");
-				arr[dst] = new node(newScopeName, newType, newId, newValue);
-				//arr[dst].insert(new node(newScopeName, newType, newId, newValue));
+				//System.out.println("inserting0");
+				arr[dst] = new node(currScope/*newScopeName*/, newType, newId, newValue);
 			}//if
 			else{
 				if(search(newId) == true){//duplicate found;end compilation
-					System.out.println("DECLARATION ERROR <" + newId + ">");
+					System.out.println("DECLARATION ERROR " + newId);
 					System.exit(1);
 				}//if
 
-				/*int x = 1;
-				while(arr[dst] != null ){//occupied
-
-					dst = dst + P(x++);
-					dst = adjust(dst);
-				}while*/
 				if(arr[dst] != null)
-					arr[dst].insert(new node(newScopeName, newType, newId, newValue));
+					arr[dst].insert(new node(currScope/*newScopeName*/, newType, newId, newValue));
 				else
-					arr[dst] = new node(newScopeName, newType, newId, newValue);
-				System.out.println("CONNECTING" + dst);
-				if(F() != 0 && arr[dst].descend(true,arr[dst].nxt()) == 0)//0 == GLOBAL SCOPE and empty tree at arr[dst]
-					arr[dst].setPrv(arr[F()-1]);//Connect to preceding scope
+					arr[dst] = new node(currScope/*newScopeName*/, newType, newId, newValue);
+				//System.out.println("CONNECTING" + dst);
+				//if(F() != 0 && arr[dst].descend(true,arr[dst].nxt()) == 0)//0 == GLOBAL SCOPE and empty tree at arr[dst]
+					//arr[dst].setPrv(arr[F()-1]);//Connect to preceding scope
 			}//else
 			size++;//inc size
 			grow();
+			//stats();
+			//print();
+			//for(int a = 0; a < size; a++)
+				//System.out.println(arr[a].scopeName);
 		}//insert
 
-		void up(){
+		void up(String newScope){
 			scopeCount++;
-			System.out.println("scopeCount " + scopeCount);
+			if(newScope == null)
+				newScope = new String("BLOCK" + blockCount++);
+			scope(newScope);//new scope name
+			System.out.println("UPscopeCount " + scopeCount + "currScope " + currScope);
 			grow();
 		}//escalate
 
 		void down(){
-			scopeCount--;
-			System.out.println("scopeCount " + scopeCount);
-			grow();
+			//scopeCount--;
+			//System.out.println(arr[0].scopeName);
+			System.out.println(scopeCount);
+			//while(arr[--scopeCount].scopeName == null)
+				//currScope = new String("BLOCK" + --blockCount);
+			if(arr[--scopeCount] == null && scopeCount > 0)
+				currScope = new String("BLOCK" + scopeCount);
+			else if(scopeCount > 0){
+				scope(arr[scopeCount].scopeName);//previous scope name
+				System.out.println("DOscopeCount " + scopeCount + "currScope " + currScope);
+			}//if
+			else
+				currScope = "GLOBAL";
 		}//deescalate
 
 		void grow(){
 			if(L() == true){
-				System.out.println("GROW");
+				//System.out.println("GROW");
 				node[] newArr = new node[length*2];
-				int y = F();
-				for(int x = 0;x < y; x++)//fill new array with old elements
-					arr[x] = arr[x];
+				//int y = F();
+				for(int x = 0;x <= scopeCount; x++)//fill new array with old elements
+					newArr[x] = arr[x];
 				arr = newArr;
 				length = length*2;
-				stats();
+				//stats();
 			}//if
 		}//grow
 
 		void stats(){
-			System.out.println("length " + length + "\nsize " + size + "\nscopeCount " + scopeCount);
+			System.out.println("length " + length + "\nsize " + size + "\nscopeCount " + scopeCount + "\ncurrScope " + currScope);
 			print();
 		}//stats
 
 		void print(){
-			for(int x = 0; x <= scopeCount; x++)
+			//System.out.println("PRINTHERE");
+			for(int x = 0; x <= scopeCount; x++){
+				//System.out.println(x);
+				//if(arr[x] == null)
+					//System.out.println("shit");
+				System.out.println("\nSymbol Table " + arr[x].scopeName);
 				print(arr[x]);
+			}//for
 		}//print
 
-		void print(node N){
-			if(N.nxt() == null){
-				if(N.type.equals("INT") || N.type.equals("FLOAT"))
-					System.out.println("name <" + N.id + ">\ttype <" + N.type + ">");
-				else
-					System.out.println("name <" + N.id + ">\ttype <" + N.type + ">\tvalue " + N.value);
-			}//if
-			else
+		private void print(node N){
+			if(N != null){
+				if(N.type.equals("INT") || N.type.equals("FLOAT") || N.type.equals("FUNCTION"))
+					System.out.println("name " + N.id + " type " + N.type);
+				else//STRING
+					System.out.println("name " + N.id + " type " + N.type + " value " + N.value);
 				print(N.nxt());
+			}//if
+			//else
+				//System.out.println("\n");
 		}//print
 
 
@@ -458,7 +525,7 @@ class symLis extends LittleBaseListener{
 			//int dst = F();
 			boolean L,R;
 			L = R = false;
-			System.out.println("Searching");
+			//System.out.println("Searching");
 			/*if(arr[dst] != null){
 				L = searchL(arr[dst].prv(), id);
 				R = searchR(arr[dst].nxt(), id);
@@ -477,14 +544,20 @@ class symLis extends LittleBaseListener{
 		}//searchL
 
 		boolean searchR(node right, String id){
-			System.out.println("RIGHT");
+			//System.out.println("RIGHT");
 			if(right != null){
 				if(right.id.equals(id))//duplicate found
 					return true;
 				return searchR(right.nxt(), id);
 			}//if
+			//System.out.println("RIGHTO");
 			return false;
 		}//searchR
+
+		String scope(String scope){
+			currScope = scope;
+			return scope;
+		}//scope
 
 	}//hashmap
 }//symLis
