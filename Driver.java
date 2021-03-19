@@ -239,9 +239,11 @@ class symLis extends LittleBaseListener{
 	@Override public void enterFunc_body(LittleParser.Func_bodyContext ctx) { 
 		System.out.println("FI");
 		neo.num(0);
+		//place dummy
 	}
 	@Override public void exitFunc_body(LittleParser.Func_bodyContext ctx) {
 		System.out.println("FL");
+		//Update dummy, and variable scopeType
 		//neo.num(1);
 		//arr.down();
 	}//exitFunc_body
@@ -613,14 +615,14 @@ class symLis extends LittleBaseListener{
 		String dataType;
 		String id;
 		String value;
-		int lvl;
+		int scopeNum;
 
-		neonode(String newType, String newId, String newValue, String newDataType, int newLvl){
+		neonode(String newType, String newId, String newValue, String newDataType, int newScopeNum){
 			type = newType;
 			dataType = newDataType;
 			id = newId;
 			value = newValue;
-			lvl = newLvl;
+			scopeNum = newScopeNum;
 		}//neonode
 	}//neonode
 	
@@ -651,15 +653,20 @@ class symLis extends LittleBaseListener{
 						System.out.println("DECLARATION ERROR " + id);
 						System.exit(1);
 					}//if
-					int x = size-1;
-					for(boolean flag = false;x >= 0 && flag == false;x--)//ignore dummys and obtains scope type
-						if(!(arr[x].type.equals("DUMMMY"))){
+					/*int tmp;//stores intended scopeLvl
+					for(int x = size - 1;,boolean flag = false;x >= 0 && flag == false;x--)//ignore dummys and obtains scope type
+						if((arr[x].type.equals("DUMMY"))){
 							flag = true;
-							x += 1;//hold on to that feeling
-						}//if
+							tmp = arr[x].lvl;
+							//x += 1;//hold on to that feeling
+						}//if*/
+					arr[size] = new neonode(null, id, value, dataType, scopeNum);//no scopeType node
 				}//if
+				else{//insert dummy marker;updated when function listener occurs
+					arr[size] = new neonode("DUMMY", "DUMMY", null, "DUMMY", scopeNum);
+				}//else
 						
-				arr[size] = new neonode(arr[x].type, id, value, dataType, scopeLvl);//insert
+				//arr[size] = new neonode(arr[x].type, id, value, dataType, scopeNum);//insert
 			}//else
 
 			grow();//check for fill
@@ -669,8 +676,10 @@ class symLis extends LittleBaseListener{
 		boolean search(String id, String dataType){
 			for(int x = size-1;x >= 0;x--){
 				neonode tmp = arr[x];
-				if(tmp.id.equals(id) && tmp.dataType.equals(dataType));
-					return true;
+				if(tmp.type){
+					if(tmp.id.equals(id) && tmp.dataType.equals(dataType));
+						return true;
+				}
 			}//for
 			return false;
 		}//search
