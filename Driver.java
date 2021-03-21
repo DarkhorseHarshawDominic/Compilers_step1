@@ -653,9 +653,9 @@ class symLis extends LittleBaseListener{
 		neohash(){
 			scopeLvl = 0;
 			scopeNum = 0;
-			arr = new neonode[8];
+			arr = new neonode[64];
 			size = 0;
-			length = 8;
+			length = 64;
 		}//neohash
 
 		void insert(String dataType, String id, String value){//level provided by neohash
@@ -677,8 +677,6 @@ class symLis extends LittleBaseListener{
 							tmp = arr[x].lvl;
 							//x += 1;//hold on to that feeling
 						}//if*/
-					if(arr[size] == null)
-						System.out.println("oops?");
 					arr[size] = new neonode();
 					arr[size++] = new neonode(arr[size-1].type, id, value, dataType, scopeNum, scopeLvl);//Even if DUMMY is adopted, functionSet method will check id and dataType for DUMMY identifiers
 				}//if
@@ -705,7 +703,7 @@ class symLis extends LittleBaseListener{
 					if(tmp.scopeLvl < scopeLvl)
 						flag = true;
 					else if(tmp.scopeLvl == scopeLvl && tmp.id.equals(id) && tmp.dataType.equals(dataType)){
-						//System.out.println("Found at " + x +  " tmpid " + tmp.id + " dT " + tmp.dataType);
+						System.out.println("Found at " + x +  " tmpid " + tmp.id + " dT " + tmp.dataType);
 						return true;
 					}//else if
 				//}catch(NullPointerException e){return false;}
@@ -731,19 +729,20 @@ class symLis extends LittleBaseListener{
 
 		void num(int choice){//up || down
 			if(choice == 0){
-				System.out.println("scopeLvl: " + ++scopeLvl);
-				System.out.println("scopeNum: " + ++scopeNum);
+				/*System.out.println("scopeLvl: " + */++scopeLvl/*)*/;
+				/*System.out.println("scopeNum: " + */++scopeNum/*)*/;
 			}//if
 			else{
-				System.out.println("scopeLvl: " + --scopeLvl);
+				/*System.out.println("scopeLvl: " + */--scopeLvl/*)*/;
 			}//else
 		}//lvl
 
 		void functionSet(String id, String dataType, String paramlist){//Completes function scope by promoting dummy markers;
 			boolean flag = false;
 			int x;
-			for(x = size;x >= 0 && flag == false;x--){
+			for(x = size-1;x >= 0 && flag == false;x--){
 				neonode tmp = arr[x];
+				System.out.println(tmp.id + tmp.dataType);
 				if(!(tmp.id.equals("DUMMY")) && !(tmp.dataType.equals("DUMMY")))//variable detected
 					arr[x].type = id;
 				else if(tmp.type.equals("DUMMY")){//DUMMY detected;avoids BLOCKX dummies
@@ -810,15 +809,18 @@ class symLis extends LittleBaseListener{
 
 				}//if
 			}//if
-
-			for(x-= 1;x >= 0; x--){//locate duplicate declarations
+			
+			flag = false;
+			for(x-= 1;x >= 0 && flag == false; x--){//locate duplicate declarations
 				neonode tmp = arr[x];
-
-				if(tmp.type.equals(id) && tmp.type.equals(dataType)){//Functions with dupe names and types not accepted
-					System.out.println("DECLARATION ERROR " + id);
+				if(tmp.scopeLvl < scopeLvl)
+					flag = true;
+				else if(tmp.type.equals(id) && tmp.dataType.equals(dataType)){//Functions with dupe names and types not accepted
+					System.out.println("DECLARATION ERROR " + id + " " + tmp.type + " " + tmp.dataType);
 					System.exit(1);						
 				}//if
 			}//for
+			
 		}//functionSet
 
 		void stats(){
