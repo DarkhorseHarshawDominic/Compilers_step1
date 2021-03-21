@@ -112,7 +112,7 @@ class symLis extends LittleBaseListener{
 	@Override public void enterString_decl(LittleParser.String_declContext ctx) {}*/
 	@Override
 	public void exitString_decl(LittleParser.String_declContext ctx) {
-		System.out.println("STR");
+		System.out.println("STR " + ctx.id().getText() + " " + ctx.str().getText());
 		//System.out.println(/*ctx.str().getText() +*/ "name " + ctx.id().getText()/* + "\ttype STRING\tvalue " + ctx.str().getText()*/);
 		//arr.insert(/*scope, */"STRING", ctx.id().getText(), ctx.str().getText());
 		neo.insert("STRING", ctx.id().getText(), ctx.str().getText());
@@ -624,6 +624,9 @@ class symLis extends LittleBaseListener{
 		int scopeNum;
 		int scopeLvl;
 
+		neonode(){
+		}//neonode
+
 		neonode(String newType, String newId, String newValue, String newDataType, int newScopeNum, int newScopeLevel){
 			type = newType;
 			dataType = newDataType;
@@ -650,13 +653,13 @@ class symLis extends LittleBaseListener{
 		neohash(){
 			scopeLvl = 0;
 			scopeNum = 0;
-			arr = new neonode[2];
+			arr = new neonode[8];
 			size = 0;
-			length = 2;
+			length = 8;
 		}//neohash
 
 		void insert(String dataType, String id, String value){//level provided by neohash
-			System.out.println("INSERTING");
+			System.out.println("INSERTING + " + id + " " + dataType);
 			if(size == 0){//BEST CASE EMPTY
 				arr[0] = new neonode("GLOBAL", id, value, dataType, 0, 0);//insert
 				size++;
@@ -674,6 +677,9 @@ class symLis extends LittleBaseListener{
 							tmp = arr[x].lvl;
 							//x += 1;//hold on to that feeling
 						}//if*/
+					if(arr[size] == null)
+						System.out.println("oops?");
+					arr[size] = new neonode();
 					arr[size++] = new neonode(arr[size-1].type, id, value, dataType, scopeNum, scopeLvl);//Even if DUMMY is adopted, functionSet method will check id and dataType for DUMMY identifiers
 				}//if
 				else{//insert dummy marker;updated when function listener occurs
@@ -683,30 +689,42 @@ class symLis extends LittleBaseListener{
 				//arr[size] = new neonode(arr[x].type, id, value, dataType, scopeNum);//insert
 			}//else
 
+			System.out.println("FINISHED");
 			grow();//check for fill
 			//stats();
 		}//insert
 
 		boolean search(String id, String dataType){
-				neonode tmp = arr[size-1];
-			for(int x = size-1;x >= 0;x--, tmp = arr[x]){
-				if(tmp.scopeLvl < scopeLvl)
-					return false;
-				else if(tmp.scopeLvl == scopeLvl && tmp.id.equals(id) && tmp.dataType.equals(dataType))
-					return true;
-			}//for
+				neonode tmp;
+				//System.out.println("searching for id " + id + "dataType " + dataType);
+				boolean flag = false;
+			for(int x = size-1;x != -1 && flag == false;x--){
+				//System.out.println("searching at " + x + " next x " + (x-1));
+				//try{
+					tmp = arr[x];
+					if(tmp.scopeLvl < scopeLvl)
+						flag = true;
+					else if(tmp.scopeLvl == scopeLvl && tmp.id.equals(id) && tmp.dataType.equals(dataType)){
+						//System.out.println("Found at " + x +  " tmpid " + tmp.id + " dT " + tmp.dataType);
+						return true;
+					}//else if
+				//}catch(NullPointerException e){return false;}
+					//x -= 1;
+			}//while
 			return false;
 		}//search
 
-		boolean L(){return size >= length-1;}//L
+		boolean L(){return size >= length/2;}//L
 
 		void grow(){
 			if(L()){
 				System.out.println("GROW");
 				int tmpLength = length*2;
 				neonode tmp[] = new neonode[tmpLength];
-				for(int x = 0; x <= length; x++)
+				for(int x = 0; x <= length; x++){
 					tmp[x] = arr[x];
+					System.out.println("moved " + tmp[x].id);
+				}//for
 				length = tmpLength;
 			}//if
 		}//grow
