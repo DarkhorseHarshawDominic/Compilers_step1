@@ -89,12 +89,12 @@ class symLis extends LittleBaseListener{
 
 	@Override
 	public void enterProg(LittleParser.ProgContext ctx) {
-		System.out.println("GLOBAL");
+		//System.out.println("GLOBAL");
 		//arr.scope("GLOBAL");
 	}//enterProg
 	@Override public void exitProg(LittleParser.ProgContext ctx) {
 		//arr.print();
-		System.out.println("GLOBAL");
+		//System.out.println("GLOBAL");
 		neo.print();
 		//neo.num(1);
 	}//exitProg
@@ -107,10 +107,10 @@ class symLis extends LittleBaseListener{
 	@Override public void enterString_decl(LittleParser.String_declContext ctx) {}*/
 	@Override
 	public void exitString_decl(LittleParser.String_declContext ctx) {
-		System.out.println("STR " + ctx.id().getText() + " " + ctx.str().getText());
+	//	System.out.println("STR " + ctx.id().getText() + " " + ctx.str().getText());
 		//System.out.println(/*ctx.str().getText() +*/ "name " + ctx.id().getText()/* + "\ttype STRING\tvalue " + ctx.str().getText()*/);
 		//arr.insert(/*scope, */"STRING", ctx.id().getText(), ctx.str().getText());
-		neo.insert("STRING", ctx.id().getText(), ctx.str().getText());
+		neo.insert(new String("STRING"), ctx.id().getText(), ctx.str().getText());
 	}//exitString_decl
 	/*@Override public void enterStr(LittleParser.StrContext ctx) { }
 	@Override public void exitStr(LittleParser.StrContext ctx) { }
@@ -127,7 +127,7 @@ class symLis extends LittleBaseListener{
 		//System.out.println(ctx.getChild(1)/*.getChild(1).getChild(2).getChild(1)*/.getText());
 		//neo.insert(ctx.var_type().getText(), ctx.id_list().id().getText(), null);
 		if(ctx.id_list().id_tail().getText().length() > 0){
-			System.out.println("WITNESS ME " + ctx.id_list().id_tail().getText());
+			//System.out.println("WITNESS ME " + ctx.id_list().id_tail().getText());
 			int lim = ctx.id_list().id_tail()/*getChild(1)*/.getText().length();
 			//System.out.println("TELL ME " + ctx.id_list().id_tail().getText().length());
 			char buffer[] = new char[lim];
@@ -183,7 +183,7 @@ class symLis extends LittleBaseListener{
 	//@Override public void enterFunc_decl(LittleParser.Func_declContext ctx) { arr.up(ctx.id().getText()); }
 	@Override
 	public void exitFunc_decl(LittleParser.Func_declContext ctx) {
-		//System.out.println("FUNCTIONNAME");
+		//System.out.println("FUNCTIONNAME " + ctx.id().getText() + " " + ctx.param_decl_list().getText());
 		neo.functionSet(ctx.id().getText(), ctx.any_type().getText(), ctx.param_decl_list().getText());
 		neo.num(1);
 		//arr.up(ctx.id().getText());//change scope
@@ -292,24 +292,24 @@ class symLis extends LittleBaseListener{
 	@Override
 	public void enterIf_stmt(LittleParser.If_stmtContext ctx) {
 		//arr.up(null);//change scope
-		System.out.println("IFI");
+		//System.out.println("IFI");
 		neo.num(0);
 	}//enterIf_stmt
 	@Override
 	public void exitIf_stmt(LittleParser.If_stmtContext ctx) {
-		System.out.println("IFL");
+		//System.out.println("IFL");
 		neo.num(1);
 		//System.out.println("IF" + ctx.decl().getText());
 		//arr.down();//change scope
 	}//exitIf_stmt
 	@Override public void enterElse_part(LittleParser.Else_partContext ctx) {
-		System.out.println("ELI");
+		//System.out.println("ELI");
 		neo.num(0);
 		//arr.up(null);//change scope
 	}//enterElse_part
 	@Override
 	public void exitElse_part(LittleParser.Else_partContext ctx) {
-		System.out.println("ELL");
+		//System.out.println("ELL");
 		neo.num(1);
 		//arr.down();//change scope
 	}//exitElse_part
@@ -319,13 +319,13 @@ class symLis extends LittleBaseListener{
 	@Override public void exitCompop(LittleParser.CompopContext ctx) { }*/
 	@Override
 	public void enterWhile_stmt(LittleParser.While_stmtContext ctx) {
-		System.out.println("WI");
+		//System.out.println("WI");
 		neo.num(0);
 		//arr.up(null);//change scope
 	}//enterWhile_stmt
 	@Override
 	public void exitWhile_stmt(LittleParser.While_stmtContext ctx) {
-		System.out.println("WL");
+		//System.out.println("WL");
 		neo.num(1);
 
 		//arr.down();//change scope
@@ -357,11 +357,6 @@ class symLis extends LittleBaseListener{
 		}//neonode
 	}//neonode
 
-	/*class subnode{
-		char NT//node type
-			//V = Variable, S = String
-	}//subnode
-	*/
 	class neohash{
 
 		int scopeLvl;
@@ -379,26 +374,20 @@ class symLis extends LittleBaseListener{
 		}//neohash
 
 		void insert(String dataType, String id, String value){//level provided by neohash
-			System.out.println("INSERTING + " + id + " " + dataType);
+			//System.out.println("INSERTING + " + id + " " + dataType);
 			dataType = dataType.replaceAll("[^a-zA-Z0-9]","");
 			id = id.replaceAll("^a-zA-Z0-9","");
 			if(size == 0){//BEST CASE EMPTY
-				arr[0] = new neonode("GLOBAL", id, value, dataType, 0, 0);//insert
+				arr[0] = new neonode();
+				arr[0] = new neonode(new String("GLOBAL"), id, value, dataType, 0, 0);//insert
 				size++;
 			}//if
 			else{//AVERAGE CASE
-				if(!(dataType.equals("DUMMY"))){
+				if(!(eq(dataType,"DUMMY"))){
 					if(search(id, dataType)){//find duplicates
 						System.out.println("DECLARATION ERROR " + id);
 						System.exit(1);
 					}//if
-					/*int tmp;//stores intended scopeLvl
-					for(int x = size - 1;,boolean flag = false;x >= 0 && flag == false;x--)//ignore dummys and obtains scope type
-						if((arr[x].type.equals("DUMMY"))){
-							flag = true;
-							tmp = arr[x].lvl;
-							//x += 1;//hold on to that feeling
-						}//if*/
 					arr[size] = new neonode();
 					arr[size++] = new neonode(arr[size-1].type, id, value, dataType, scopeNum, scopeLvl);//Even if DUMMY is adopted, functionSet method will check id and dataType for DUMMY identifiers
 				}//if
@@ -406,10 +395,11 @@ class symLis extends LittleBaseListener{
 					arr[size++] = new neonode("DUMMY", "DUMMY", null, "DUMMY", scopeNum, scopeLvl);
 				}//else
 						
-				//arr[size] = new neonode(arr[x].type, id, value, dataType, scopeNum);//insert
 			}//else
 
-			System.out.println("FINISHED");
+			//System.out.println("FINISHED" + arr[size-1].type);
+			if(scopeLvl == 0)
+				arr[size-1].type = new String("GLOBAL");
 			grow();//check for fill
 			//stats();
 		}//insert
@@ -444,6 +434,12 @@ class symLis extends LittleBaseListener{
 		}//search
 
 		boolean eq(String a, String b){
+			/*if(a == null){
+				System.out.println("a is null b is " + b);
+			}//if
+			else if(b == null)
+				System.out.println("b is null");
+			*/
 			a = a.replaceAll("[^a-zA-Z0-9]","");
 			b = b.replaceAll("[^a-zA-Z0-9]","");
 			int aa = a.length();
@@ -483,7 +479,6 @@ class symLis extends LittleBaseListener{
 				neonode tmp[] = new neonode[tmpLength];
 				for(int x = 0; x <= length; x++){
 					tmp[x] = arr[x];
-					//System.out.println("moved " + tmp[x].id);
 				}//for
 				length = tmpLength;
 				arr = tmp;
@@ -492,11 +487,11 @@ class symLis extends LittleBaseListener{
 
 		void num(int choice){//up || down
 			if(choice == 0){
-				/*System.out.println("scopeLvl: " + */++scopeLvl/*)*/;
-				/*System.out.println("scopeNum: " + */++scopeNum/*)*/;
+				++scopeLvl;
+				++scopeNum;
 			}//if
 			else{
-				/*System.out.println("scopeLvl: " + */--scopeLvl/*)*/;
+				--scopeLvl;
 			}//else
 		}//lvl
 
@@ -505,29 +500,28 @@ class symLis extends LittleBaseListener{
 			int x;
 			for(x = size-1;x >= 0 && flag == false;x--){
 				neonode tmp = arr[x];
-				System.out.println(tmp.id + tmp.dataType);
-				if(!(tmp.id.equals("DUMMY")) && !(tmp.dataType.equals("DUMMY")))//variable detected
+				//System.out.println(tmp.id + " " + tmp.dataType);
+				if(!(eq(tmp.id,"DUMMY")) && !(eq(tmp.dataType,"DUMMY")))//variable detected
 					arr[x].type = id;
-				else if(tmp.type.equals("DUMMY")){//DUMMY detected;avoids BLOCKX dummies
+				else if(eq(tmp.type,"DUMMY")){//DUMMY detected;avoids BLOCKX dummies
 					arr[x].type = id;//promote dummy to function id scope
 					arr[x].dataType = dataType;//save function's return type;use unknown
 					flag = true;
 				}//else if
 			}//for
 
-
-			String tmp0 = paramlist;
-			if(tmp0 != null){//insert Function parameters between declaration and exisintg declarations
+			if(paramlist != null){
+				String tmp0 = paramlist;//insert Function parameters between declaration and exisintg declarations
 				//rip&submit until it is done
 				int lim = tmp0.length();
-				//System.out.println(lim);
+				//System.out.println("LIM " + lim);
 				char []type;
 				char []type0;
 				int loss = 0;
 
 				if(lim > 0){
 					while(loss < lim){
-						//System.out.println(lim + " " + loss);
+						//System.out.println(loss + " " + lim);
 						//System.out.println(loss < lim);
 
 						type  = new char[lim];
@@ -564,9 +558,12 @@ class symLis extends LittleBaseListener{
 							}//if
 						}//while
 
+						//System.out.println("loss " + loss);
 						//System.out.println(type0);
 						//arr.insert(new String(type), new String(type0), null);
 						neo.insert(new String(type), new String(type0), null);
+						if(loss >= lim)
+							return;
 					}//while
 
 				}//if
@@ -575,8 +572,10 @@ class symLis extends LittleBaseListener{
 			flag = false;
 			for(x-= 1;x >= 0 && flag == false; x--){//locate duplicate declarations
 				neonode tmp = arr[x];
-				if(tmp.type.equals(id) && tmp.dataType.equals(dataType)){//Functions with dupe names and types not accepted
-					System.out.println("DECLARATION ERROR " + id + " " + tmp.type + " " + tmp.dataType);
+				//System.out.println(x);
+				//System.out.println("tmp type " + tmp.type + "tmpid " + tmp.id);
+				if(eq(tmp.type,id) && eq(tmp.dataType,dataType)){//Functions with dupe names and types not accepted
+					System.out.println("DECLARATION ERROR " + id /*+ " " + tmp.type + " " + tmp.dataType*/);
 					System.exit(1);						
 				}//if
 			}//for
@@ -603,7 +602,7 @@ class symLis extends LittleBaseListener{
 					neonode tmp1 = arr[y];
 					if(tmp1.scopeNum == x){
 						if(tmp1.id.equals("DUMMY")){//Function marker
-							System.out.println("Symbol table " + tmp1.id);
+							System.out.println("Symbol table " + tmp1.type);
 							flag = true;
 						}//if
 						else if(tmp1.scopeLvl > 1){//Block marker
@@ -619,14 +618,24 @@ class symLis extends LittleBaseListener{
 
 				neonode tmp0;
 
-				for(int y = 0;y <= tmp;y++){
+				for(int y = 0;y < tmp;y++){
 					tmp0 = arr[y];
+					System.out.println(tmp0.id + tmp0.scopeNum);
+					//System.out.println(!(eq(tmp0.dataType,"DUMMY")) && !(eq(tmp0.id,"DUMMY")));
 					if(tmp0.scopeNum == x){
-						if(!(tmp0.id.equals("DUMMY")) && !(tmp0.dataType.equals("DUMMY"))){//variable
-							if(tmp0.type.equals("INT") || tmp0.type.equals("FLOAT"))
+						if(!(eq(tmp0.id,"DUMMY")) && !(eq(tmp0.dataType,"DUMMY"))){//variable
+							if(tmp0.value == null)
 								System.out.println("name " + tmp0.id + " type " + tmp0.dataType);
-							else if(tmp0.type.equals("STRING"))
+							else
 								System.out.println("name " + tmp0.id + " type " + tmp0.type + " value " + tmp0.value);
+								
+							/*if(eq(tmp0.type,"INT") || eq(tmp0.type,"FLOAT")){
+								System.out.println("name " + tmp0.id + " type " + tmp0.dataType);
+							}//if
+							else if(eq(tmp0.type,"STRING")){
+								System.out.println("name " + tmp0.id + " type " + tmp0.type + " value " + tmp0.value);
+							}//else if
+							*/
 						}//if
 
 					}//if
