@@ -1,13 +1,6 @@
 /*Define Little grammar*/
 grammar Little;
 
-/*prog		: PROGRAM IDENTIFIER 'BEGIN' body 'END' WS* EOF;
-
-body		: (decl | expr)*;
-
-decl		:
-=======
-prog : (decl | expr)+ EOF;*/
 prog		: 'PROGRAM' id 'BEGIN' pgm_body 'END' ;
 id              : IDENTIFIER ;
 pgm_body        : decl func_declarations ;

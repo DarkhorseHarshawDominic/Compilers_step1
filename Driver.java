@@ -542,7 +542,6 @@ class symLis extends LittleBaseListener{
 
 						}//while
 
-							//System.out.println("OUT");
 							//System.out.println(type);
 
 						while(z != 0 && loss < lim){//second word
