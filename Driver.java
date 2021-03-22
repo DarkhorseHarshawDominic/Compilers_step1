@@ -21,7 +21,7 @@ public class Driver{
 		parser.addErrorListener(new ADListener());
 		parser.addParseListener(new symLis());
 		ParseTree tree = parser.prog();
-		System.out.println("Accepted");
+		//System.out.println("Accepted");
 		//System.out.println("Not Accepted");
 		//System.out.println(tree.toStringTree(parser));
 		//spaceWalk(tokens);
@@ -302,7 +302,7 @@ class symLis extends LittleBaseListener{
 		}//neohash
 
 		void insert(String dataType, String id, String value){//level provided by neohash
-			//System.out.println("INSERTING + " + id + " " + dataType);
+			System.out.println("INSERTING + " + id + " " + dataType);
 			dataType = dataType.replaceAll("[^a-zA-Z0-9]","");
 			id = id.replaceAll("^a-zA-Z0-9","");
 			if(size == 0){//BEST CASE EMPTY
@@ -418,6 +418,16 @@ class symLis extends LittleBaseListener{
 			}//else
 		}//lvl
 
+		void shuffle(int dest){//opens spot in arr for functionSet manual insertion
+			for(int x = size-1;x >= dest;x--){
+				System.out.println(x + " " + size);
+				System.out.println("moving " + arr[x].id);
+				arr[x+1] = new neonode();
+				arr[x+1] = arr[x];
+				System.out.println(arr[x].id);
+			}//for
+		}//
+
 		void functionSet(String id, String dataType, String paramlist){//Completes function scope by promoting dummy markers;
 			boolean flag = false;
 			int x;
@@ -433,6 +443,8 @@ class symLis extends LittleBaseListener{
 					flag = true;
 				}//else if
 			}//for
+
+			//shuffle(x+1);
 
 			if(paramlist != null){
 				String tmp0 = paramlist;//insert Function parameters between declaration and exisintg declarations
@@ -482,7 +494,17 @@ class symLis extends LittleBaseListener{
 
 						//System.out.println("loss " + loss);
 						//System.out.println(type0);
-						neo.insert(new String(type), new String(type0), null);
+						if((search(new String(type), new String(type0)))){
+							System.out.println("DECLARATION ERROR " + id);
+							System.exit(1);
+						}//if
+
+						shuffle(x+2);//make room for insert
+						//arr[x+1] = new neonode();
+						arr[x+2] = new neonode(dataType, new String(type0), null, new String(type), scopeNum, scopeLvl);
+						//System.out.println("ID " + arr[x+2].id);
+						size++;//update size
+						//neo.insert(new String(type), new String(type0), null);
 						if(loss >= lim)
 							return;
 					}//while
@@ -512,7 +534,7 @@ class symLis extends LittleBaseListener{
 		}//stats
 
 		void print(){
-			//System.out.println("PRINTING");
+			System.out.println("PRINTING");
 			//stats();
 			int tmp = size;
 			int tmp2 = scopeNum;
@@ -541,7 +563,7 @@ class symLis extends LittleBaseListener{
 
 				for(int y = 0;y < tmp;y++){
 					tmp0 = arr[y];
-					//System.out.println(tmp0.id + tmp0.scopeNum);
+					System.out.println(tmp0.id + tmp0.scopeNum);
 					//System.out.println(!(eq(tmp0.dataType,"DUMMY")) && !(eq(tmp0.id,"DUMMY")));
 					if(tmp0.scopeNum == x){
 						if(!(eq(tmp0.id,"DUMMY")) && !(eq(tmp0.dataType,"DUMMY"))){//variable
