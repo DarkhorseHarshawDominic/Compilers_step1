@@ -221,25 +221,26 @@ class symLis extends LittleBaseListener{
 	@Override public void exitMulop(LittleParser.MulopContext ctx) { }*/
 	@Override
 	public void enterIf_stmt(LittleParser.If_stmtContext ctx) {
-		//System.out.println("IFI");
+		//System.out.println("IF IN");
 		neo.num(0);
 	}//enterIf_stmt
 	@Override
 	public void exitIf_stmt(LittleParser.If_stmtContext ctx) {
-		//System.out.println("IFL");
+		//System.out.println("IF OUT");
 		neo.num(1);
 		//arr.down();//change scope
 	}//exitIf_stmt
 	@Override public void enterElse_part(LittleParser.Else_partContext ctx) {
-		//System.out.println("ELI");
-		neo.num(0);
-		//arr.up(null);//change scope
+		//System.out.println("ELSE IN");
+		//neo.num(0);
 	}//enterElse_part
 	@Override
 	public void exitElse_part(LittleParser.Else_partContext ctx) {
-		//System.out.println("ELL");
-		neo.num(1);
-		//arr.down();//change scope
+		//System.out.println("ELSE OUT");
+		if(ctx.decl() != null || ctx.stmt_list() != null){
+			neo.num(0);
+			neo.num(1);
+		}//if
 	}//exitElse_part
 	/*@Override public void enterCond(LittleParser.CondContext ctx) { }
 	@Override public void exitCond(LittleParser.CondContext ctx) { }
@@ -429,6 +430,7 @@ class symLis extends LittleBaseListener{
 		}//
 
 		void functionSet(String id, String dataType, String paramlist){//Completes function scope by promoting dummy markers;
+			//System.out.println(id + "'s call" + scopeNum);
 			boolean flag = false;
 			int x;
 			for(x = size-1;x >= 0 && flag == false;x--){
@@ -437,14 +439,15 @@ class symLis extends LittleBaseListener{
 				if(!(eq(tmp.id,"DUMMY")) && !(eq(tmp.dataType,"DUMMY")))//variable detected
 					arr[x].type = id;
 				else if(eq(tmp.type,"DUMMY")){//DUMMY detected;avoids BLOCKX dummies
-					//System.out.println();
+					//System.out.println("was" + tmp.scopeNum);
 					arr[x].type = id;//promote dummy to function id scope
 					arr[x].dataType = dataType;//save function's return type;use unknown
 					flag = true;
+					//System.out.println("proof at " + x + " type " + arr[x].type + " dataType " + arr[x].dataType + " id " + arr[x].id +  " scopelvl" + arr[x].scopeLvl) ;
 				}//else if
 			}//for
 
-			//shuffle(x+1);
+			//System.out.println(arr[x].type + arr[x+1].type + arr[x+1].id);
 
 			if(paramlist != null){
 				String tmp0 = paramlist;//insert Function parameters between declaration and exisintg declarations
@@ -541,38 +544,43 @@ class symLis extends LittleBaseListener{
 			int tmp = size;
 			int tmp2 = scopeNum;
 			int blockNum = 1;
+			String name[] = new String[tmp];
+
 			for(int x = 0;x <= tmp2;x++){
 				boolean flag = false;
+				//System.out.println("X" + x);
 				for(int y = 0;flag == false && y <= tmp; y++){
 					neonode tmp1 = arr[y];
+					//System.out.println(x + " " + tmp1.scopeNum);
 					if(tmp1.scopeNum == x){
 						if(tmp1.id.equals("DUMMY")){//Function marker
-							System.out.println("Symbol table " + tmp1.type);
+							System.out.println("\nSymbol table " + tmp1.type);
 							flag = true;
 						}//if
-						else if(tmp1.scopeLvl > 1){//Block marker
-							System.out.println("Symbol table " + "BlOCK" + blockNum++);
-							flag = true;
-						}//else if
-						else{//GLOBAL
+						else if(tmp1.scopeNum == 0){//GLOBAL
 							System.out.println("Symbol table GLOBAL");
 							flag = true;
 						}//else
 					}//if
+					else if(y == tmp2){//Block marker
+						System.out.println("\nSymbol table " + "BlOCK" + blockNum++);
+						flag = true;
+					}//else if
+
 				}//for
 
 				neonode tmp0;
 
 				for(int y = 0;y < tmp;y++){
 					tmp0 = arr[y];
-					//System.out.println(y + tmp0.id + tmp0.scopeNum);
+					//System.out.println(tmp0.type + " " + tmp0.scopeNum);
 					//System.out.println(!(eq(tmp0.dataType,"DUMMY")) && !(eq(tmp0.id,"DUMMY")));
 					if(tmp0.scopeNum == x){
 						if(!(eq(tmp0.id,"DUMMY")) && !(eq(tmp0.dataType,"DUMMY"))){//variable
 							if(tmp0.value == null)
 								System.out.println("name " + tmp0.id + " type " + tmp0.dataType);
 							else
-								System.out.println("name " + tmp0.id + " type " + tmp0.type + " value " + tmp0.value);
+								System.out.println("name " + tmp0.id + " type " + tmp0.dataType + " value " + tmp0.value);
 								
 						}//if
 
