@@ -302,7 +302,7 @@ class symLis extends LittleBaseListener{
 		}//neohash
 
 		void insert(String dataType, String id, String value){//level provided by neohash
-			System.out.println("INSERTING + " + id + " " + dataType);
+			//System.out.println("INSERTING + " + id + " " + dataType);
 			dataType = dataType.replaceAll("[^a-zA-Z0-9]","");
 			id = id.replaceAll("^a-zA-Z0-9","");
 			if(size == 0){//BEST CASE EMPTY
@@ -420,11 +420,11 @@ class symLis extends LittleBaseListener{
 
 		void shuffle(int dest){//opens spot in arr for functionSet manual insertion
 			for(int x = size-1;x >= dest;x--){
-				System.out.println(x + " " + size);
-				System.out.println("moving " + arr[x].id);
+				//System.out.println(x + " " + size);
+				//System.out.println("moving " + arr[x].id);
 				arr[x+1] = new neonode();
 				arr[x+1] = arr[x];
-				System.out.println(arr[x].id);
+				//System.out.println(arr[x].id);
 			}//for
 		}//
 
@@ -501,9 +501,11 @@ class symLis extends LittleBaseListener{
 
 						shuffle(x+2);//make room for insert
 						//arr[x+1] = new neonode();
-						arr[x+2] = new neonode(dataType, new String(type0), null, new String(type), scopeNum, scopeLvl);
+						//System.out.println("scopeNum " + arr[x+1].scopeNum);
+						//System.out.println("inserting " + new String(type0) + " at " + (x+2));
 						//System.out.println("ID " + arr[x+2].id);
 						size++;//update size
+						arr[x+2] = new neonode(id, new String(type0), null, new String(type), arr[x+1].scopeNum, 1);
 						//neo.insert(new String(type), new String(type0), null);
 						if(loss >= lim)
 							return;
@@ -534,7 +536,7 @@ class symLis extends LittleBaseListener{
 		}//stats
 
 		void print(){
-			System.out.println("PRINTING");
+			//System.out.println("PRINTING");
 			//stats();
 			int tmp = size;
 			int tmp2 = scopeNum;
@@ -563,7 +565,7 @@ class symLis extends LittleBaseListener{
 
 				for(int y = 0;y < tmp;y++){
 					tmp0 = arr[y];
-					System.out.println(tmp0.id + tmp0.scopeNum);
+					//System.out.println(y + tmp0.id + tmp0.scopeNum);
 					//System.out.println(!(eq(tmp0.dataType,"DUMMY")) && !(eq(tmp0.id,"DUMMY")));
 					if(tmp0.scopeNum == x){
 						if(!(eq(tmp0.id,"DUMMY")) && !(eq(tmp0.dataType,"DUMMY"))){//variable
@@ -572,13 +574,6 @@ class symLis extends LittleBaseListener{
 							else
 								System.out.println("name " + tmp0.id + " type " + tmp0.type + " value " + tmp0.value);
 								
-							if(eq(tmp0.type,"INT") || eq(tmp0.type,"FLOAT")){
-								System.out.println("name " + tmp0.id + " type " + tmp0.dataType);
-							}//if
-							else if(eq(tmp0.type,"STRING")){
-								System.out.println("name " + tmp0.id + " type " + tmp0.type + " value " + tmp0.value);
-							}//else if
-							
 						}//if
 
 					}//if
