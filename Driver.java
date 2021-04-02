@@ -307,10 +307,10 @@ class symLis extends LittleBaseListener{
 		}//neohash
 
 		void insert(String dataType, String id, String value){//level provided by neohash
-			//System.out.println("INSERTING " + id);
-			dataType = dataType.replaceAll("[^a-zA-Z0-9]","");
-			id = id.replaceAll("^a-zA-Z0-9","");
-
+			//System.out.println("INSERTING " + id + " " + dataType + " " + id.length() + " " + dataType.length());
+			dataType = fixer(dataType);
+			id = fixer(id);
+			
 			if(size == 0){//BEST CASE EMPTY
 				arr[0] = new neonode();
 				arr[0] = new neonode(new String("GLOBAL"), id, value, dataType, 0, 0);//insert
@@ -358,8 +358,6 @@ class symLis extends LittleBaseListener{
 		}//search
 
 		boolean eq(String a, String b){
-			a = a.replaceAll("[^a-zA-Z0-9]","");
-			b = b.replaceAll("[^a-zA-Z0-9]","");
 			int aa = a.length();
 			int bb = b.length();
 			boolean flag = false;
@@ -468,15 +466,15 @@ class symLis extends LittleBaseListener{
 								z = 0;//break inner loop
 							}//if
 						}//while
-
-						if((search(new String(type), new String(type0)))){
+				
+						if((search(fixer(new String(type)), fixer(new String(type0))))){
 							System.out.println("DECLARATION ERROR " + id);
 							System.exit(1);
 						}//if
 
 						shuffle(x+2);//make room for insert
 						size++;//update size
-						arr[x+2] = new neonode(id, new String(type0), null, new String(type), arr[x+1].scopeNum, 1);
+						arr[x+2] = new neonode(id, fixer(new String(type0)), null, fixer(new String(type)), arr[x+1].scopeNum, 1);
 						if(loss >= lim)
 							return;
 					}//while
@@ -548,6 +546,18 @@ class symLis extends LittleBaseListener{
 				}//for
 			}//for
 		}//print
+		String fixer(String prob){
+			int limit = prob.length();
+			String sol = new String();
+			int x = 0;
+			for(;x < limit && prob.charAt(x) == 0x0;x++){}//for
+
+			for(;x < limit;x++){//loops through entire prob
+				if(prob.charAt(x) != 0x0)//checks for null characters
+					sol = sol.concat(prob.substring(x,x+1));//appends non-nulls to clean string
+			}//for
+			return sol;
+		}//fixer
 
 	}//neohash
 
