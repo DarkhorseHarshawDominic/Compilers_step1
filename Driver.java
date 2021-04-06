@@ -419,11 +419,12 @@ class symLis extends LittleBaseListener{
 			int x;
 			for(x = size-1;x >= 0 && flag == false;x--){
 				neonode tmp = arr[x];
-				if(!(eq(tmp.id,"DUMMY")) && !(eq(tmp.dataType,"DUMMY")))//variable detected
+				if(/*!(eq(tmp.id,"DUMMY")) && */!(eq(tmp.dataType,"DUMMY")))//variable detected
 					arr[x].type = id;
 				else if(eq(tmp.type,"DUMMY")){//DUMMY detected;avoids BLOCKX dummies
 					arr[x].type = id;//promote dummy to function id scope
 					arr[x].dataType = dataType;//save function's return type;use unknown
+					arr[x].scopeNum = arr[x-1].scopeNum+1;//get scopeNum from preceding scope
 					flag = true;
 				}//else if
 			}//for
@@ -510,8 +511,9 @@ class symLis extends LittleBaseListener{
 
 			for(int x = 0;x <= tmp2;x++){
 				boolean flag = false;
-				for(int y = 0;flag == false && y <= tmp; y++){
+				for(int y = 0;flag == false && y < tmp; y++){
 					neonode tmp1 = arr[y];
+					//System.out.println("x:" + x + "y:" + y + " " + tmp1.type + " " + tmp2);
 					if(tmp1.scopeNum == x){
 						if(tmp1.id.equals("DUMMY")){//Function marker
 							System.out.println("\nSymbol table " + tmp1.type);
@@ -520,12 +522,12 @@ class symLis extends LittleBaseListener{
 						else if(tmp1.scopeNum == 0){//GLOBAL
 							System.out.println("Symbol table GLOBAL");
 							flag = true;
-						}//else
+						}//else if
+						else if(tmp1.scopeLvl > arr[y-1].scopeLvl{//Block marker
+							System.out.println("\nSymbol table BLOCK " + blockNum++);
+							flag = true;
+						}//else if
 					}//if
-					else if(y == tmp2){//Block marker
-						System.out.println("\nSymbol table " + "BlOCK" + blockNum++);
-						flag = true;
-					}//else if
 
 				}//for
 
