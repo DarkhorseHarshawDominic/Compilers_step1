@@ -90,6 +90,7 @@ class symLis extends LittleBaseListener{
 	@Override
 	public void enterProg(LittleParser.ProgContext ctx) {
 		//System.out.println("GLOBAL");
+		neo.globalSet();
 	}//enterProg
 	@Override public void exitProg(LittleParser.ProgContext ctx) {
 		//System.out.println("GLOBAL");
@@ -176,7 +177,7 @@ class symLis extends LittleBaseListener{
 	@Override public void enterFunc_body(LittleParser.Func_bodyContext ctx) { 
 		//System.out.println("FI");
 		neo.num(0);
-		neo.insert("DUMMY", "DUMMY", null);
+		neo.insert("D", "D", null);
 		//place dummy
 	}
 	@Override public void exitFunc_body(LittleParser.Func_bodyContext ctx) {
@@ -226,7 +227,8 @@ class symLis extends LittleBaseListener{
 	@Override
 	public void enterIf_stmt(LittleParser.If_stmtContext ctx) {
 		//System.out.println("IF IN");
-		neo.num(0);
+		neo.scopeSet();
+		//neo.num(0);
 	}//enterIf_stmt
 	@Override
 	public void exitIf_stmt(LittleParser.If_stmtContext ctx) {
@@ -236,13 +238,14 @@ class symLis extends LittleBaseListener{
 	}//exitIf_stmt
 	@Override public void enterElse_part(LittleParser.Else_partContext ctx) {
 		//System.out.println("ELSE IN");
+		neo.scopeSet();
 		//neo.num(0);
 	}//enterElse_part
 	@Override
 	public void exitElse_part(LittleParser.Else_partContext ctx) {
 		//System.out.println("ELSE OUT");
 		if(ctx.decl() != null || ctx.stmt_list() != null){
-			neo.num(0);
+			//neo.num(0);
 			neo.num(1);
 		}//if
 	}//exitElse_part
@@ -253,7 +256,8 @@ class symLis extends LittleBaseListener{
 	@Override
 	public void enterWhile_stmt(LittleParser.While_stmtContext ctx) {
 		//System.out.println("WI");
-		neo.num(0);
+		neo.scopeSet();
+		//neo.num(0);
 		//arr.up(null);//change scope
 	}//enterWhile_stmt
 	@Override
@@ -317,7 +321,7 @@ class symLis extends LittleBaseListener{
 				size++;
 			}//if
 			else{//AVERAGE CASE
-				if(!(eq(dataType,"DUMMY"))){
+				if(!(eq(dataType,"D"))){
 					if(search(id, dataType)){//find duplicates
 						System.out.println("DECLARATION ERROR " + id);
 						System.exit(1);
@@ -326,7 +330,7 @@ class symLis extends LittleBaseListener{
 					arr[size++] = new neonode(arr[size-1].type, id, value, dataType, scopeNum, scopeLvl);//Even if DUMMY is adopted, functionSet method will check id and dataType for DUMMY identifiers
 				}//if
 				else{//insert dummy marker;updated when function listener occurs
-					arr[size++] = new neonode("DUMMY", "DUMMY", null, "DUMMY", scopeNum, scopeLvl);
+					arr[size++] = new neonode("D", "D", null, "D", scopeNum, scopeLvl);
 				}//else
 						
 			}//else
@@ -358,6 +362,7 @@ class symLis extends LittleBaseListener{
 		}//search
 
 		boolean eq(String a, String b){
+			/*
 			int aa = a.length();
 			int bb = b.length();
 			boolean flag = false;
@@ -381,6 +386,8 @@ class symLis extends LittleBaseListener{
 			if(flag0 == true)
 				return true;
 			return false;
+			*/
+			return a.equals(b);
 		}//eq
 
 		boolean L(){return size >= length/2;}//L
@@ -414,16 +421,21 @@ class symLis extends LittleBaseListener{
 			}//for
 		}//
 
+		void globalSet(){
+			arr[size++] = new neonode(new String("G"), new String("G"), null, new String("G"), scopeNum, scopeLvl);
+		}//globalSet
+
 		void functionSet(String id, String dataType, String paramlist){//Completes function scope by promoting dummy markers;
 			boolean flag = false;
 			int x;
 			for(x = size-1;x >= 0 && flag == false;x--){
 				neonode tmp = arr[x];
-				if(!(eq(tmp.id,"DUMMY")) && !(eq(tmp.dataType,"DUMMY")))//variable detected
+				if(/*!(eq(tmp.id,"DUMMY")) && */!(eq(tmp.dataType,"D")))//variable detected
 					arr[x].type = id;
-				else if(eq(tmp.type,"DUMMY")){//DUMMY detected;avoids BLOCKX dummies
+				else if(eq(tmp.type,"D")){//DUMMY detected;avoids BLOCKX dummies
 					arr[x].type = id;//promote dummy to function id scope
 					arr[x].dataType = dataType;//save function's return type;use unknown
+					arr[x].scopeNum = arr[x-1].scopeNum+1;//get scopeNum from preceding scope
 					flag = true;
 				}//else if
 			}//for
@@ -493,6 +505,11 @@ class symLis extends LittleBaseListener{
 			
 		}//functionSet
 
+		void scopeSet(){//inserts new BLOCK symbol table
+			num(0);//inc scopeNum and scopeLvl
+			arr[size++] = new neonode(new String("S"), new String("S"), null, new String("S"), scopeNum, scopeLvl);
+		}//scopeSet
+
 		void stats(){
 			System.out.println(
 			"scopeLvl: " + scopeLvl
@@ -510,22 +527,23 @@ class symLis extends LittleBaseListener{
 
 			for(int x = 0;x <= tmp2;x++){
 				boolean flag = false;
-				for(int y = 0;flag == false && y <= tmp; y++){
+				for(int y = 0;flag == false && y < tmp; y++){
 					neonode tmp1 = arr[y];
+					//System.out.println("x:" + x + "y:" + y + " " + tmp1.type + " " + tmp2);
 					if(tmp1.scopeNum == x){
-						if(tmp1.id.equals("DUMMY")){//Function marker
+						if(tmp1.id.equals("D")){//Function marker
 							System.out.println("\nSymbol table " + tmp1.type);
 							flag = true;
 						}//if
 						else if(tmp1.scopeNum == 0){//GLOBAL
 							System.out.println("Symbol table GLOBAL");
 							flag = true;
-						}//else
+						}//else if
+						else if(tmp1.scopeLvl > arr[y-1].scopeLvl){//Block marker
+							System.out.println("\nSymbol table BLOCK " + blockNum++);
+							flag = true;
+						}//else if
 					}//if
-					else if(y == tmp2){//Block marker
-						System.out.println("\nSymbol table " + "BlOCK" + blockNum++);
-						flag = true;
-					}//else if
 
 				}//for
 
@@ -534,7 +552,7 @@ class symLis extends LittleBaseListener{
 				for(int y = 0;y < tmp;y++){
 					tmp0 = arr[y];
 					if(tmp0.scopeNum == x){
-						if(!(eq(tmp0.id,"DUMMY")) && !(eq(tmp0.dataType,"DUMMY"))){//variable
+						if(!(eq(tmp0.id,"D")) && !(eq(tmp0.dataType,"D")) && !(tmp0.dataType.equals("S")) && (!tmp0.id.equals("S")) && (!tmp0.id.equals("G") && (!tmp0.id.equals("G")))){//variable
 							if(tmp0.value == null)
 								System.out.println("name " + tmp0.id + " type " + tmp0.dataType);
 							else
