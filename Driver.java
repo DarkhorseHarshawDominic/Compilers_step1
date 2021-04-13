@@ -194,15 +194,117 @@ class symLis extends LittleBaseListener{
 	@Override public void exitBase_stmt(LittleParser.Base_stmtContext ctx) { }
 	@Override public void enterAssign_stmt(LittleParser.Assign_stmtContext ctx) { }
 	@Override public void exitAssign_stmt(LittleParser.Assign_stmtContext ctx) { }
-	@Override public void enterAssign_expr(LittleParser.Assign_exprContext ctx) { }
-	@Override public void exitAssign_expr(LittleParser.Assign_exprContext ctx) { }
-	@Override public void enterRead_stmt(LittleParser.Read_stmtContext ctx) { }
+	@Override public void enterAssign_expr(LittleParser.Assign_exprContext ctx) { }*/
+	@Override
+	public void exitAssign_expr(LittleParser.Assign_exprContext ctx) {
+		String left = ctx.id().getText();//left id
+		System.out.println("left " + left);
+		String str = ctx.expr().getText();//right side SUBMIT
+		//System.out.println("expr " + ctx.expr().getText());
+		int lim = str.length();
+		if(lim > 1){
+			//System.out.println(" afsafas "  + ((str.charAt(1) > 57 || str.charAt(1) < 48) && str.charAt(1) != 46));
+			if((str.charAt(1) > 57 || str.charAt(1) < 48) && str.charAt(1) != 46){//not 0-9 and not .
+				int x = 1;//curr charAt location
+				char[]c = new char[1];//buffer size 1
+				if(str.charAt(0) == '('){//dodges (
+					c[0] = str.charAt(1);
+					x++;//inc x
+				}//if
+				else{//no dodge
+					c[0] = str.charAt(0);
+				}//else
+
+				String tmp = new String(c);//c[0] -> tmp
+
+				//rip and tear until it is done
+				//int x = 1;
+				for(;x < lim && (c[0] > 66 && c[0] < 91 || c[0] > 96 && c[0] < 122);x++){//first id a-zAz
+					tmp.concat(new String(c));//update tmp
+					c[0] = str.charAt(x);//new c[0]
+				}//for
+	
+				System.out.println("test " + tmp);//SUBMIT
+
+				char opr;//operand
+
+				if(str.charAt(x-1) > 41 && str.charAt(x-1) < 48)//operand here
+					opr = str.charAt(x-1);
+				else//or operand is here
+					opr = str.charAt(x++);//and inc x
+
+				System.out.println("opr " + opr);
+
+				if(x < lim){//prevents arrayOutOfBounds
+					c[0] = str.charAt(x);//begin next id
+					tmp = new String(c);//c[0] -> tmp
+					x++;//update x
+					
+					for(;x < lim && ((c[0] > 66 && c[0] < 91 || c[0] > 96 && c[0] < 122) || (c[0] > 47 && c[0] < 58) || c[0] == 46);x++){//second id
+						//System.out.println(c);
+						if(str.charAt(x) != ')'){//dodges )
+							c[0] = str.charAt(x);
+							tmp = new String(tmp + c[0]);
+						}//if
+						//System.out.println(tmp);
+					}//for
+				}//if
+				System.out.println("test2 " + tmp);//SUBMIT
+			}//if
+			else if(str.charAt(1) > 47 && str.charAt(1) < 58 || str.charAt(1) == 46){//number that isn't single digit || .
+				char c[] = new char[1];
+				c[0] = str.charAt(0);
+				String tmp = new String(c);
+
+				for(int x = 1;x < lim;x++){
+					c[0] = str.charAt(x);
+					tmp = (new String(tmp + c[0]));
+				}//for
+
+				System.out.println("test3 " + tmp);
+			}//else if
+		}//if
+		else{//single assignment
+			System.out.println("test4 " + str);
+		}//else
+
+	}//exitAssign_expr
+	/*@Override public void enterRead_stmt(LittleParser.Read_stmtContext ctx) { }
 	@Override public void exitRead_stmt(LittleParser.Read_stmtContext ctx) { }
-	@Override public void enterWrite_stmt(LittleParser.Write_stmtContext ctx) { }
-	@Override public void exitWrite_stmt(LittleParser.Write_stmtContext ctx) { }
-	@Override public void enterReturn_stmt(LittleParser.Return_stmtContext ctx) { }
-	@Override public void exitReturn_stmt(LittleParser.Return_stmtContext ctx) { }
-	@Override public void enterExpr(LittleParser.ExprContext ctx) { }
+	@Override public void enterWrite_stmt(LittleParser.Write_stmtContext ctx) { }*/
+	@Override
+	public void exitWrite_stmt(LittleParser.Write_stmtContext ctx){
+		System.out.println("WRITE " + ctx.id_list().id().getText());//SUBMIT
+
+		if(ctx.id_list().id_tail().getText().length() > 0){
+			String str = ctx.id_list().id_tail().getText();
+			//System.out.println("ALSO WRITE " + str);
+
+			int lim = str.length();
+			char []buffer = new char[lim];//size of str length
+			int x = 1;//1 because 0 == ','
+			int y = 0;//buffer current
+			//rip and tear until it is done
+			while(x != lim){
+				if(str.charAt(x) != ','){
+					buffer[y++] = str.charAt(x++);
+				}//if
+				else{
+					System.out.println("ALSO WRITE " + new String(buffer));
+					x++;//skip ,
+					buffer = new char[lim - x];//shrink buffer
+					y = 0;//reset buffer current
+				}//else
+			}//while
+			//buffer[y] = str.charAt(x);//snag last word
+			System.out.println("ALSO WRITE " + new String(buffer));
+		}//if
+	}//exitWrite_stmt
+	//@Override public void enterReturn_stmt(LittleParser.Return_stmtContext ctx) { }
+	@Override
+	public void exitReturn_stmt(LittleParser.Return_stmtContext ctx){
+	}//exitReturn_stmt
+	/*@Override public void enterExpr(LittleParser.ExprContext ctx) { }
 	@Override public void exitExpr(LittleParser.ExprContext ctx) { }
 	@Override public void enterExpr_prefix(LittleParser.Expr_prefixContext ctx) { }
 	@Override public void exitExpr_prefix(LittleParser.Expr_prefixContext ctx) { }
@@ -271,6 +373,54 @@ class symLis extends LittleBaseListener{
 	@Override public void exitEveryRule(ParserRuleContext ctx) { }
 	@Override public void visitTerminal(TerminalNode node) { }
 	@Override public void visitErrorNode(ErrorNode node) { }*/
+
+	class node{
+		int t;//node type
+			//0 Dummy
+			//1 Function
+			//2 variable
+			//3 operator
+			//4 Function end
+			//5 Read
+			//6 Write
+		String v;//payload
+		node l;//left-child
+		node r;//right-child
+		node n;//next
+
+		node(int newT, String newV){
+			t = newT;
+			v = newV;
+		}//node
+
+		void l(node newL){
+			l = newL;
+		}//l
+
+		void r(node newR){
+			r = newR;
+		}//r
+
+		void n(node newN){
+			n = newN;
+		}//n
+
+		node getN(){
+			return n;
+		}//getN
+
+		String v(){
+			return v;
+		}//v
+	}//node
+
+	class AST{
+		node curr;
+		node head;
+
+		void ins(int type, String value){
+		}//ins
+	}//AST
 
 	
 	class neonode{
