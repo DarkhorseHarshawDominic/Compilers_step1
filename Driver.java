@@ -269,9 +269,35 @@ class symLis extends LittleBaseListener{
 		}//else
 
 	}//exitAssign_expr
-	/*@Override public void enterRead_stmt(LittleParser.Read_stmtContext ctx) { }
-	@Override public void exitRead_stmt(LittleParser.Read_stmtContext ctx) { }
-	@Override public void enterWrite_stmt(LittleParser.Write_stmtContext ctx) { }*/
+	//@Override public void enterRead_stmt(LittleParser.Read_stmtContext ctx) { }
+	@Override
+	public void exitRead_stmt(LittleParser.Read_stmtContext ctx){
+		System.out.println("READ " + ctx.id_list().id().getText());//SUBMIT
+
+		if(ctx.id_list().id_tail().getText().length() > 0){
+			String str = ctx.id_list().id_tail().getText();
+			//System.out.println("ALSO READ " + str);
+
+			int lim = str.length();
+			char []buffer = new char[lim];//size of str length
+			int x = 1;//1 because 0 == ','
+			int y = 0;//buffer current
+			//rip and tear until it is done
+			while(x != lim){
+				if(str.charAt(x) != ','){
+					buffer[y++] = str.charAt(x++);
+				}//if
+				else{
+					System.out.println("ALSO READ " + new String(buffer));
+					x++;//skip ,
+					buffer = new char[lim - x];//shrink buffer
+					y = 0;//reset buffer current
+				}//else
+			}//while
+			System.out.println("ALSO READ " + new String(buffer));
+		}//if
+	}//exitRead_stmt
+	//@Override public void enterWrite_stmt(LittleParser.Write_stmtContext ctx) { }
 	@Override
 	public void exitWrite_stmt(LittleParser.Write_stmtContext ctx){
 		System.out.println("WRITE " + ctx.id_list().id().getText());//SUBMIT
@@ -296,7 +322,6 @@ class symLis extends LittleBaseListener{
 					y = 0;//reset buffer current
 				}//else
 			}//while
-			//buffer[y] = str.charAt(x);//snag last word
 			System.out.println("ALSO WRITE " + new String(buffer));
 		}//if
 	}//exitWrite_stmt
