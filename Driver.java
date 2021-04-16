@@ -83,10 +83,11 @@ class symLis extends LittleBaseListener{
 	neohash neo;
 	String scope;
 	AST ast;
-
+	converter con;
 	symLis(){
 		neo = new neohash();
 		ast = new AST();
+		con = new converter(ast, neo);
 	}//symLis
 
 	@Override
@@ -99,6 +100,8 @@ class symLis extends LittleBaseListener{
 		//neo.print();
 		//neo.num(1);
 		ast.print();
+		con.convert();
+		con.print();
 	}//exitProg
 	@Override
 	public void exitString_decl(LittleParser.String_declContext ctx) {
@@ -176,11 +179,13 @@ class symLis extends LittleBaseListener{
 
 		neo.functionSet(ctx.id().getText(), ctx.any_type().getText(), ctx.param_decl_list().getText());
 		neo.num(1);
+		ast.function(ctx.id().getText());//activate funciton protocol
 	}//exitFunc_decl
 	@Override public void enterFunc_body(LittleParser.Func_bodyContext ctx) { 
 		//System.out.println("FI");
 		neo.num(0);
 		neo.insert("D", "D", null);
+		ast.ins(0,1, new String("D"));
 		//place dummy
 	}
 	/*@Override public void exitFunc_body(LittleParser.Func_bodyContext ctx) {}//exitFunc_body
@@ -415,6 +420,51 @@ class symLis extends LittleBaseListener{
 	@Override public void visitTerminal(TerminalNode node) { }
 	@Override public void visitErrorNode(ErrorNode node) { }*/
 
+	class converter{
+		String[] reg;//in-use register table
+		String[] arr;//holds converted code
+		AST ast;//abstract syntax tree
+		neohash neo;//symbol table
+		int size;
+
+		converter(AST newAst, neohash newNeo){
+			reg = new String[4];//Four GPIO registers
+			arr = new String[200];//Addressable memory limit unknown;200 lines of code oughta do it
+			ast = newAst;
+			neo = newNeo;
+			size = 0;
+		}//converter
+
+		void convert(){//converts ast into tiny code w/ use of reg and neo
+			System.out.println("CONVERT");
+			int x = 0;
+			int lim = ast.size;
+			node curr = ast.root.getN();
+			while(x < lim){
+				switch(curr.t()){
+					case 1://function
+						//obtain function's symbol table
+						String tmp[] = neo.request(curr.v());
+						//convert function's symbol table
+						int lim0 = tmp.length();
+						
+						break;
+					default:
+						break;
+				}//switch
+			}//while
+			
+		}//convert
+
+		void print(){
+			int x = 0;
+			while(x < size){
+				System.out.println(arr[x]);
+				x++;//update sentinel
+			}//while
+		}//print
+	}//converter
+
 	class node{
 		int t;//node type
 			//-1 HEAD
@@ -463,6 +513,13 @@ class symLis extends LittleBaseListener{
 					n.show();
 			}//if
 		}//show
+
+		void update(String id){
+			if(t == 1)
+				v = id;
+			else
+				n.update(id);
+		}//update
 	}//node
 
 	class AST{
@@ -509,10 +566,13 @@ class symLis extends LittleBaseListener{
 		}//ins
 
 		void print(){
-			try{
-				root.getN().show();
-			}catch(NullPointerException e){System.out.println("oops");}
-		}//show
+			root.getN().show();
+		}//print
+
+		void function(String id){
+			root.update(id);
+			ast.ins(0,5,"END");
+		}//function
 	}//AST
 
 	
@@ -820,6 +880,16 @@ class symLis extends LittleBaseListener{
 			return sol;
 		}//fixer
 
+		String[] request(String sym){//returns symbol table on-demand
+			String [] ark = new String[size];
+			int x = 0;
+			while(x < size){
+				neonode tmp = arr[x];
+				if(tmp.type.equals(sym))
+					ark[x] = tmp;
+			}//while
+			return ark;
+		}//request
 	}//neohash
 
 }//symLis
