@@ -206,7 +206,8 @@ class symLis extends LittleBaseListener{
 		String str = ctx.expr().getText();//right side
 		//System.out.println("expr " + ctx.expr().getText());
 		int lim = str.length();
-		if(lim > 1){
+
+		if(lim > 1 && (str.charAt(0) > 57 || str.charAt(0) < 48)){
 			//System.out.println(" afsafas "  + ((str.charAt(1) > 57 || str.charAt(1) < 48) && str.charAt(1) != 46));
 			if((str.charAt(1) > 57 || str.charAt(1) < 48) && str.charAt(1) != 46){//not 0-9 and not .
 				int x = 1;//curr charAt location
@@ -268,7 +269,7 @@ class symLis extends LittleBaseListener{
 					tmp = (new String(tmp + c[0]));
 				}//for
 
-				//System.out.println("test3 " + tmp);
+				System.out.println("test3 " + tmp);
 				ast.ins(2,3,tmp);//SUBMIT tmp
 			}//else if
 		}//if
