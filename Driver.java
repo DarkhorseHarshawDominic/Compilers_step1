@@ -422,29 +422,27 @@ class symLis extends LittleBaseListener{
 
 	class converter{
 		String[] reg;//in-use register table
+		int regsize;
 		String[] arr;//holds converted code
 		neonode var[];//in-use variables
+		int varcurr;
 		AST ast;//abstract syntax tree
 		neohash neo;//symbol table
 		int size;
-		int concurr;
-		int varcurr;
-		int arrcurr;
 
 		converter(AST newAst, neohash newNeo){
 			reg = new String[600];//600 registers(200 Float, 200 Int, 200 String) and little extra for variables
-			concurr = 0;
-			var = new neonode[600];//keeps track of var values
+			regsize = 0;
+			var = new neonode[600];//var values
 			varcurr = 0;
 			arr = new String[1024];//Addressable memory limit unknown;1K lines of code oughta do it
-			arrcurr = 0;
 			ast = newAst;
 			neo = newNeo;
 			size = 0;
 		}//converter
 
 		void convert(){
-			System.out.println("CONVERT");
+			//System.out.println("CONVERT");
 			convert(ast.root);
 		}//convert
 
@@ -461,27 +459,81 @@ class symLis extends LittleBaseListener{
 						request(str);
 						//convert function's symbol table
 						break;
+					case 2://Assignment
+						//System.out.println("Ass. " + root.getR().v());
+						ass(root);
+						break;
+					case 6://read
+						read(root);
+						break;
+					case 7://write
+						write(root);
+						break;
 					default:
+						if(root.getN() == null)//end of tree
+							arr[size++] = new String("sys halt");
 						break;
 				}//switch
 			if(root.getN() != null)
 				convert(root.getN());//recursive call
 		}//convert
 
+		void read(node root){
+			arr[size++] = new String("sys read" + type(root.v()) + " " + root.v());
+		}//read
+
+		void write(node root){
+			arr[size++] = new String("sys write" + type(root.v()) + " " + root.v());
+		}//write
+
+		void ass(node root){
+			//System.out.println(root.getR().v());
+			if(root.getR().t() == 3){//assignment == a = b || j = 3.14
+				if(type(root.getL().v()) == 'r' && regsize == 0)//unknown reasoning but no floats on r0
+					regsize++;
+				arr[size++] = new String("move " + root.getR().v() + " r" + regsize + "\nmove " + "r" + regsize + " " + root.getL().v());//move num into reg
+				reg[regsize++] = root.getR().v();//store in register || update regsize
+			}//if
+			else if(root.getR().t() == 4){//operator detected
+				arr[size++] = new String("move " + root.getR().getL().v() + " r" + regsize + "\nmul" + type(root.getL().v()) + " " + root.getR().getR().v() + " r" + regsize + "\nmove r" + regsize++ + " " + root.getL().v());
+				reg[regsize-1] = new String(root.getR().getL().v() + " " + root.getR().v() + " " + root.getR().getR().v());//ex rN g - a
+			}//else if
+		}//ass
+
+		char type(String str){//returns appropriate dataType
+			int x = 0;
+			while(x < varcurr){
+				if(var[x].id.equals(str)){//find right variable
+					if(var[x].dataType.charAt(0) == 'S')
+						return 's';
+					else if(var[x].dataType.equals("INT"))
+						return 'i';
+					else if(var[x].dataType.equals("FLOAT"))
+						return 'r';
+				}//if
+				x++;
+			}//while
+			return 'i';//you shouldn't be here
+		}//type
+
 		void request(String sym){
 			int lim = neo.size;
 			int x = 0;
 			while(x < lim){
-				System.out.println(": " + neo.arr[x].type);
-				if(neo.arr[x].dataType.equals("STRING")){
-					arr[size++] = new String("str " + neo.arr[x].id + " " + neo.arr[x].value);//assemble string
-					var[varcurr++] = arr[x];//place var in var
+				//System.out.println(": " + neo.arr[x].type);
+				if(neo.arr[x].type.equals(sym)){
+					if(neo.arr[x].dataType.equals("STRING")){
+						arr[size++] = new String("str " + neo.arr[x].id + " " + neo.arr[x].value);//assemble string
+						var[varcurr++] = neo.arr[x];//place var in var
+					}//if
+					else if(neo.arr[x].dataType.equals("FLOAT") || neo.arr[x].dataType.equals("INT")){
+						arr[size++] = new String("var " + neo.arr[x].id);
+						var[varcurr++] = neo.arr[x];//place var in var
+					}//else if
 				}//if
-				else if(neo.arr[x].dataType.equals("FLOAT") || neo.arr[x].dataType.equals("INT")){
-					arr[size++] = new String("var " + neo.arr[x].id);
-				}//else if
 				x++;
 			}//while
+			//System.out.println(size + " " + sym);
 		}//request
 		
 		void print(){
@@ -491,6 +543,13 @@ class symLis extends LittleBaseListener{
 				x++;//update sentinel
 			}//while
 		}//print
+
+		void printVar(){
+			int x = 0;
+			while(x < varcurr){
+				System.out.println(var[x]);
+			}//while
+		}//printVar
 	}//converter
 
 	class node{
@@ -525,6 +584,8 @@ class symLis extends LittleBaseListener{
 		node getR(){ return r; }//getR
 
 		node getN(){ return n; }//getN
+
+		node getL(){ return l;}//getL
 
 		String v(){ return v; }//v
 
@@ -562,6 +623,7 @@ class symLis extends LittleBaseListener{
 		}//AST
 
 		void ins(int choice, int type, String value){
+			value = fixer(value);
 			switch(choice){
 				case 0://next sequence in tree insertion
 					curr.n(new node(type,value));
@@ -601,6 +663,19 @@ class symLis extends LittleBaseListener{
 			root.update(id);
 			ast.ins(0,5,"END");
 		}//function
+
+		String fixer(String prob){
+			int limit = prob.length();
+			String sol = new String();
+			int x = 0;
+			for(;x < limit && prob.charAt(x) == 0x0;x++){}//for
+
+			for(;x < limit;x++){//loops through entire prob
+				if(prob.charAt(x) != 0x0)//checks for null characters
+					sol = sol.concat(prob.substring(x,x+1));//appends non-nulls to clean string
+			}//for
+			return sol;
+		}//fixer
 	}//AST
 
 	
@@ -870,6 +945,7 @@ class symLis extends LittleBaseListener{
 				}//for
 			}//for
 		}//print
+
 		String fixer(String prob){
 			int limit = prob.length();
 			String sol = new String();
@@ -883,24 +959,6 @@ class symLis extends LittleBaseListener{
 			return sol;
 		}//fixer
 
-		/*neonode[] request(String sym){//returns symbol table on-demand
-			neonode []ark = new neonode[size];
-			int x = 0;
-			while(x < size){
-				neonode tmp = arr[x];
-				System.out.println("AFAF " + tmp.id);
-				if(tmp.type.equals(sym)){
-					ark[x] = new neonode();
-					ark[x] = tmp;
-					System.out.println(ark[x].id);
-				}//if
-				System.out.println(ark[0].id);
-			x++;
-			}//while
-			//System.out.println(ark[0].id);
-			return ark;
-		}//request
-		*/
 	}//neohash
 
 }//symLis
