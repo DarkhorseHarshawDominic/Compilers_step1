@@ -1,3 +1,4 @@
+
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 import java.io.FileInputStream;
@@ -82,9 +83,12 @@ public class Driver{
 class symLis extends LittleBaseListener{
 	neohash neo;
 	String scope;
-
+	AST ast;
+	converter con;
 	symLis(){
 		neo = new neohash();
+		ast = new AST();
+		con = new converter(ast, neo);
 	}//symLis
 
 	@Override
@@ -94,8 +98,11 @@ class symLis extends LittleBaseListener{
 	}//enterProg
 	@Override public void exitProg(LittleParser.ProgContext ctx) {
 		//System.out.println("GLOBAL");
-		neo.print();
+		//neo.print();
 		//neo.num(1);
+		//ast.print();
+		con.convert();
+		con.print();
 	}//exitProg
 	@Override
 	public void exitString_decl(LittleParser.String_declContext ctx) {
@@ -173,20 +180,17 @@ class symLis extends LittleBaseListener{
 
 		neo.functionSet(ctx.id().getText(), ctx.any_type().getText(), ctx.param_decl_list().getText());
 		neo.num(1);
+		ast.function(ctx.id().getText());//activate funciton protocol
 	}//exitFunc_decl
 	@Override public void enterFunc_body(LittleParser.Func_bodyContext ctx) { 
 		//System.out.println("FI");
 		neo.num(0);
 		neo.insert("D", "D", null);
+		ast.ins(0,1, new String("D"));
 		//place dummy
 	}
-	@Override public void exitFunc_body(LittleParser.Func_bodyContext ctx) {
-		//System.out.println("FL");
-		//Update dummy, and variable scopeType
-		//neo.num(1);
-		//arr.down();
-	}//exitFunc_body
-	/*@Override public void enterStmt_list(LittleParser.Stmt_listContext ctx) { }
+	/*@Override public void exitFunc_body(LittleParser.Func_bodyContext ctx) {}//exitFunc_body
+	@Override public void enterStmt_list(LittleParser.Stmt_listContext ctx) { }
 	@Override public void exitStmt_list(LittleParser.Stmt_listContext ctx) { }
 	@Override public void enterStmt(LittleParser.StmtContext ctx) { }
 	@Override public void exitStmt(LittleParser.StmtContext ctx) { }
@@ -197,12 +201,19 @@ class symLis extends LittleBaseListener{
 	@Override public void enterAssign_expr(LittleParser.Assign_exprContext ctx) { }*/
 	@Override
 	public void exitAssign_expr(LittleParser.Assign_exprContext ctx) {
+		//generate := node
+		ast.ins(0, 2, "=");
+
+		//submit left id
 		String left = ctx.id().getText();//left id
-		System.out.println("left " + left);
-		String str = ctx.expr().getText();//right side SUBMIT
+		ast.ins(1, 3, left);
+		//System.out.println("left " + left);
+
+		String str = ctx.expr().getText();//right side
 		//System.out.println("expr " + ctx.expr().getText());
 		int lim = str.length();
-		if(lim > 1){
+
+		if(lim > 1 && (str.charAt(0) > 57 || str.charAt(0) < 48)){
 			//System.out.println(" afsafas "  + ((str.charAt(1) > 57 || str.charAt(1) < 48) && str.charAt(1) != 46));
 			if((str.charAt(1) > 57 || str.charAt(1) < 48) && str.charAt(1) != 46){//not 0-9 and not .
 				int x = 1;//curr charAt location
@@ -224,16 +235,18 @@ class symLis extends LittleBaseListener{
 					c[0] = str.charAt(x);//new c[0]
 				}//for
 	
-				System.out.println("test " + tmp);//SUBMIT
+				//System.out.println("test " + tmp);//SUBMIT
 
-				char opr;//operand
+				char[] opr = new char[1];//operand
 
 				if(str.charAt(x-1) > 41 && str.charAt(x-1) < 48)//operand here
-					opr = str.charAt(x-1);
+					opr[0] = str.charAt(x-1);
 				else//or operand is here
-					opr = str.charAt(x++);//and inc x
+					opr[0] = str.charAt(x++);//and inc x
+				ast.ins(2,4,new String(opr));//SUBMIT OPERAND
+				ast.ins(2,3,tmp);//SUBMIT TMP
 
-				System.out.println("opr " + opr);
+				//System.out.println("opr " + new String(opr));
 
 				if(x < lim){//prevents arrayOutOfBounds
 					c[0] = str.charAt(x);//begin next id
@@ -249,7 +262,8 @@ class symLis extends LittleBaseListener{
 						//System.out.println(tmp);
 					}//for
 				}//if
-				System.out.println("test2 " + tmp);//SUBMIT
+				//System.out.println("test2 " + tmp);//SUBMIT
+				ast.ins(2,3,tmp);
 			}//if
 			else if(str.charAt(1) > 47 && str.charAt(1) < 58 || str.charAt(1) == 46){//number that isn't single digit || .
 				char c[] = new char[1];
@@ -262,19 +276,51 @@ class symLis extends LittleBaseListener{
 				}//for
 
 				System.out.println("test3 " + tmp);
+				ast.ins(2,3,tmp);//SUBMIT tmp
 			}//else if
 		}//if
 		else{//single assignment
-			System.out.println("test4 " + str);
+			//System.out.println("test4 " + str);
+			ast.ins(3,3,str);
 		}//else
 
 	}//exitAssign_expr
-	/*@Override public void enterRead_stmt(LittleParser.Read_stmtContext ctx) { }
-	@Override public void exitRead_stmt(LittleParser.Read_stmtContext ctx) { }
-	@Override public void enterWrite_stmt(LittleParser.Write_stmtContext ctx) { }*/
+	//@Override public void enterRead_stmt(LittleParser.Read_stmtContext ctx) { }
+	@Override
+	public void exitRead_stmt(LittleParser.Read_stmtContext ctx){
+		//System.out.println("READ " + ctx.id_list().id().getText());//SUBMIT
+		ast.ins(0,6, ctx.id_list().id().getText());
+
+		if(ctx.id_list().id_tail().getText().length() > 0){
+			String str = ctx.id_list().id_tail().getText();
+			//System.out.println("ALSO READ " + str);
+
+			int lim = str.length();
+			char []buffer = new char[lim];//size of str length
+			int x = 1;//1 because 0 == ','
+			int y = 0;//buffer current
+			//rip and tear until it is done
+			while(x != lim){
+				if(str.charAt(x) != ','){
+					buffer[y++] = str.charAt(x++);
+				}//if
+				else{
+					//System.out.println("ALSO READ " + new String(buffer));
+					ast.ins(0,6, new String(buffer));
+					x++;//skip ,
+					buffer = new char[lim - x];//shrink buffer
+					y = 0;//reset buffer current
+				}//else
+			}//while
+			//System.out.println("ALSO READ " + new String(buffer));
+			ast.ins(0,6, new String(buffer));
+		}//if
+	}//exitRead_stmt
+	//@Override public void enterWrite_stmt(LittleParser.Write_stmtContext ctx) { }
 	@Override
 	public void exitWrite_stmt(LittleParser.Write_stmtContext ctx){
-		System.out.println("WRITE " + ctx.id_list().id().getText());//SUBMIT
+		//System.out.println("WRITE " + ctx.id_list().id().getText());//SUBMIT
+		ast.ins(0,7, ctx.id_list().id().getText());
 
 		if(ctx.id_list().id_tail().getText().length() > 0){
 			String str = ctx.id_list().id_tail().getText();
@@ -290,14 +336,15 @@ class symLis extends LittleBaseListener{
 					buffer[y++] = str.charAt(x++);
 				}//if
 				else{
-					System.out.println("ALSO WRITE " + new String(buffer));
+					//System.out.println("ALSO WRITE " + new String(buffer));
+					ast.ins(0,7, new String(buffer));
 					x++;//skip ,
 					buffer = new char[lim - x];//shrink buffer
 					y = 0;//reset buffer current
 				}//else
 			}//while
-			//buffer[y] = str.charAt(x);//snag last word
-			System.out.println("ALSO WRITE " + new String(buffer));
+			//System.out.println("ALSO WRITE " + new String(buffer));
+			ast.ins(0,7, new String(buffer));
 		}//if
 	}//exitWrite_stmt
 	//@Override public void enterReturn_stmt(LittleParser.Return_stmtContext ctx) { }
@@ -374,52 +421,262 @@ class symLis extends LittleBaseListener{
 	@Override public void visitTerminal(TerminalNode node) { }
 	@Override public void visitErrorNode(ErrorNode node) { }*/
 
+	class converter{
+		String[] reg;//in-use register table
+		int regsize;
+		String[] arr;//holds converted code
+		neonode var[];//in-use variables
+		int varcurr;
+		AST ast;//abstract syntax tree
+		neohash neo;//symbol table
+		int size;
+
+		converter(AST newAst, neohash newNeo){
+			reg = new String[600];//600 registers(200 Float, 200 Int, 200 String) and little extra for variables
+			regsize = 0;
+			var = new neonode[600];//var values
+			varcurr = 0;
+			arr = new String[1024];//Addressable memory limit unknown;1K lines of code oughta do it
+			ast = newAst;
+			neo = newNeo;
+			size = 0;
+		}//converter
+
+		void convert(){
+			//System.out.println("CONVERT");
+			convert(ast.root);
+		}//convert
+
+		void convert(node root){//converts ast into tiny code w/ use of reg and neo
+			//System.out.println("HERE");
+			String str = null;
+				switch(root.t()){
+					case -1://GLOBAL; needs symbol table
+						str = "GLOBAL";
+					case 1://function
+						//obtain function's symbol table
+						if(str == null)
+							str = root.v();
+						request(str);
+						//convert function's symbol table
+						break;
+					case 2://Assignment
+						//System.out.println("Ass. " + root.getR().v());
+						ass(root);
+						break;
+					case 6://read
+						read(root);
+						break;
+					case 7://write
+						write(root);
+						break;
+					default:
+						if(root.getN() == null)//end of tree
+							arr[size++] = new String("sys halt");
+						break;
+				}//switch
+			if(root.getN() != null)
+				convert(root.getN());//recursive call
+		}//convert
+
+		void read(node root){
+			arr[size++] = new String("sys read" + type(root.v()) + " " + root.v());
+		}//read
+
+		void write(node root){
+			arr[size++] = new String("sys write" + type(root.v()) + " " + root.v());
+		}//write
+
+		void ass(node root){
+			//System.out.println(root.getR().v());
+			if(root.getR().t() == 3){//assignment == a = b || j = 3.14
+				if(type(root.getL().v()) == 'r' && regsize == 0)//unknown reasoning but no floats on r0
+					regsize++;
+				arr[size++] = new String("move " + root.getR().v() + " r" + regsize + "\nmove " + "r" + regsize + " " + root.getL().v());//move num into reg
+				reg[regsize++] = root.getR().v();//store in register || update regsize
+			}//if
+			else if(root.getR().t() == 4){//operator detected
+				arr[size++] = new String("move " + root.getR().getL().v() + " r" + regsize + "\nmul" + type(root.getL().v()) + " " + root.getR().getR().v() + " r" + regsize + "\nmove r" + regsize++ + " " + root.getL().v());
+				reg[regsize-1] = new String(root.getR().getL().v() + " " + root.getR().v() + " " + root.getR().getR().v());//ex rN g - a
+			}//else if
+		}//ass
+
+		char type(String str){//returns appropriate dataType
+			int x = 0;
+			while(x < varcurr){
+				if(var[x].id.equals(str)){//find right variable
+					if(var[x].dataType.charAt(0) == 'S')
+						return 's';
+					else if(var[x].dataType.equals("INT"))
+						return 'i';
+					else if(var[x].dataType.equals("FLOAT"))
+						return 'r';
+				}//if
+				x++;
+			}//while
+			return 'i';//you shouldn't be here
+		}//type
+
+		void request(String sym){
+			int lim = neo.size;
+			int x = 0;
+			while(x < lim){
+				//System.out.println(": " + neo.arr[x].type);
+				if(neo.arr[x].type.equals(sym)){
+					if(neo.arr[x].dataType.equals("STRING")){
+						arr[size++] = new String("str " + neo.arr[x].id + " " + neo.arr[x].value);//assemble string
+						var[varcurr++] = neo.arr[x];//place var in var
+					}//if
+					else if(neo.arr[x].dataType.equals("FLOAT") || neo.arr[x].dataType.equals("INT")){
+						arr[size++] = new String("var " + neo.arr[x].id);
+						var[varcurr++] = neo.arr[x];//place var in var
+					}//else if
+				}//if
+				x++;
+			}//while
+			//System.out.println(size + " " + sym);
+		}//request
+		
+		void print(){
+			int x = 0;
+			while(x < size){
+				System.out.println(arr[x]);
+				x++;//update sentinel
+			}//while
+		}//print
+
+		void printVar(){
+			int x = 0;
+			while(x < varcurr){
+				System.out.println(var[x]);
+			}//while
+		}//printVar
+	}//converter
+
 	class node{
 		int t;//node type
+			//-1 HEAD
 			//0 Dummy
 			//1 Function
-			//2 variable
-			//3 operator
-			//4 Function end
-			//5 Read
-			//6 Write
+			//2 assignment
+			//3 var_names
+			//4 operator
+			//5 Function end
+			//6 Read
+			//7 Write
 		String v;//payload
+		node p;//parent
 		node l;//left-child
 		node r;//right-child
 		node n;//next
 
-		node(int newT, String newV){
-			t = newT;
-			v = newV;
-		}//node
+		node(int newT, String newV){ t = newT;	v = newV; }//node
 
-		void l(node newL){
-			l = newL;
-		}//l
+		void l(node newL){ l = newL; }//l
 
-		void r(node newR){
-			r = newR;
-		}//r
+		void p(node newP){p = newP; }//p
 
-		void n(node newN){
-			n = newN;
-		}//n
+		void r(node newR){ r = newR; }//r
 
-		node getN(){
-			return n;
-		}//getN
+		void n(node newN){ n = newN; }//n
 
-		String v(){
-			return v;
-		}//v
+		node getP(){ return p; }//getP
+
+		node getR(){ return r; }//getR
+
+		node getN(){ return n; }//getN
+
+		node getL(){ return l;}//getL
+
+		String v(){ return v; }//v
+
+		int t(){ return t; }//t
+
+		void show(){
+			if(this != null){
+				if(l != null)
+					l.show();
+				System.out.println("type: " + t + " val : " + v + "\n");
+				if(r != null)
+					r.show();
+				if(n != null)
+					n.show();
+			}//if
+		}//show
+
+		void update(String id){
+			if(t == 1)
+				v = id;
+			else
+				n.update(id);
+		}//update
 	}//node
 
 	class AST{
 		node curr;
-		node head;
+		node root;
+		int size;
 
-		void ins(int type, String value){
+		AST(){
+			root = new node( -1, "root");
+			curr = root;
+			size = 0;
+		}//AST
+
+		void ins(int choice, int type, String value){
+			value = fixer(value);
+			switch(choice){
+				case 0://next sequence in tree insertion
+					curr.n(new node(type,value));
+					curr = curr.n;//move curr
+					break;
+				case 1://left insertion at curr node
+					curr.l(new node(type,value));
+					break;
+				case 2://right insertion at curr/oprerator node
+					switch(type){
+						case 4://operator
+							curr.r(new node(type,value));
+							break;
+						case 3://operand
+							if(curr.r.l == null)
+								curr.r.l(new node(type,value));
+							else
+								curr.r.r(new node(type,value));
+							break;
+						default:break;
+					}//switch
+					break;
+				case 3://right insertion at curr node; assignment expression
+					curr.r(new node(type,value));
+					break;
+				default:
+					break;
+			}//switch
+			size++;
 		}//ins
+
+		void print(){
+			root.getN().show();
+		}//print
+
+		void function(String id){
+			root.update(id);
+			ast.ins(0,5,"END");
+		}//function
+
+		String fixer(String prob){
+			int limit = prob.length();
+			String sol = new String();
+			int x = 0;
+			for(;x < limit && prob.charAt(x) == 0x0;x++){}//for
+
+			for(;x < limit;x++){//loops through entire prob
+				if(prob.charAt(x) != 0x0)//checks for null characters
+					sol = sol.concat(prob.substring(x,x+1));//appends non-nulls to clean string
+			}//for
+			return sol;
+		}//fixer
 	}//AST
 
 	
@@ -512,31 +769,6 @@ class symLis extends LittleBaseListener{
 		}//search
 
 		boolean eq(String a, String b){
-			/*
-			int aa = a.length();
-			int bb = b.length();
-			boolean flag = false;
-			boolean flag0= true;
-			int lim;
-			if(aa < bb)
-				lim = aa;
-			else
-				lim = bb;
-			if(aa == bb){
-				for(int x = 0;x < lim && flag == false;x++){
-					if(a.charAt(x) != b.charAt(x)){
-						flag = true;
-						flag0= false;
-					}//if
-				}//for
-			}//if
-			else
-				flag0 = false;
-
-			if(flag0 == true)
-				return true;
-			return false;
-			*/
 			return a.equals(b);
 		}//eq
 
@@ -714,6 +946,7 @@ class symLis extends LittleBaseListener{
 				}//for
 			}//for
 		}//print
+
 		String fixer(String prob){
 			int limit = prob.length();
 			String sol = new String();
@@ -730,4 +963,3 @@ class symLis extends LittleBaseListener{
 	}//neohash
 
 }//symLis
-
